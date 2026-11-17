@@ -17,6 +17,7 @@ create table if not exists events (
   who         text not null check (who in ('a', 'b', 'both')),
   kind        text not null default 'range' check (kind in ('range', 'point')),
   series_id   text,                          -- shared by every class of a repeating series
+  location    text,                          -- optional place
   created_by  text,
   created_at  timestamptz not null default now()
 );
@@ -44,3 +45,6 @@ alter table calendars enable row level security;
 alter table events    enable row level security;
 alter table messages  enable row level security;
 alter table ai_usage  enable row level security;
+
+-- Upgrading an older database? Run this line once to add the place field:
+alter table events add column if not exists location text;

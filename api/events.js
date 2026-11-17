@@ -12,12 +12,14 @@ function clean(e, partial) {
   if (e.title !== undefined) { const t = clip(e.title, 60).trim(); if (!t) return null; f.title = t; }
   if (e.who !== undefined) { if (!WHO.includes(e.who)) return null; f.who = e.who; }
   if (e.kind !== undefined) f.kind = e.kind === 'point' ? 'point' : 'range';
+  if (e.location !== undefined) f.location = clip(e.location, 80).trim() || null;
   if (!partial) {
     if (!f.date || !f.start_time || !f.title) return null;
     f.who = f.who || 'a'; f.kind = f.kind || 'range';
     if (!f.end_time || f.kind === 'point') f.end_time = f.kind === 'point' ? f.start_time : f.end_time;
     // every row in one insert must have the same columns (Supabase rejects mixed rows)
     f.series_id = e.seriesId ? clip(e.seriesId, 40) : null;
+    f.location = f.location ?? null;
     f.created_by = e.by ? clip(e.by, 4) : null;
   }
   return f;

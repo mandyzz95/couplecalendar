@@ -89,7 +89,7 @@ export const usingFileStore = !(SB_URL && SB_KEY);
 // database row  <->  what the page uses
 export const toClientEvent = r => ({
   id: r.id, date: r.date, start: r.start_time, end: r.end_time, title: r.title, who: r.who,
-  kind: r.kind || 'range', ...(r.series_id ? { seriesId: r.series_id } : {}), by: r.created_by || '',
+  kind: r.kind || 'range', location: r.location || '', ...(r.series_id ? { seriesId: r.series_id } : {}), by: r.created_by || '',
 });
 export const toClientMsg = r => ({ id: r.id, role: r.role, from: r.from_who || null, text: r.text, ts: Number(r.ts) });
 
@@ -177,7 +177,7 @@ export function buildPrompt({ text, me, today, time, names, events, messages }) 
   const from = ymd(addDays(ws, -14)), to = ymd(addDays(ws, 35));
   const who = w => w === 'both' ? '一起' : (names[w] || w);
   const evs = events.filter(e => e.date >= from && e.date <= to)
-    .map(e => `- id=${e.id} | ${e.date}(${dowOf(e.date)}) ${e.start}-${e.end} | who=${e.who}(${who(e.who)}) | ${e.kind === 'point' ? '[时间点] ' : ''}${clip(e.title, 60)}${e.seriesId ? ` | series=${e.seriesId}` : ''}`)
+    .map(e => `- id=${e.id} | ${e.date}(${dowOf(e.date)}) ${e.start}-${e.end} | who=${e.who}(${who(e.who)}) | ${e.kind === 'point' ? '[时间点] ' : ''}${clip(e.title, 60)}${e.location ? ` @${clip(e.location, 40)}` : ''}${e.seriesId ? ` | series=${e.seriesId}` : ''}`)
     .join('\n') || '（暂无日程）';
   const other = me === 'a' ? 'b' : 'a';
   const meName = names[me], otherName = names[other];
@@ -213,7 +213,8 @@ ${table}
   · reply 里说清楚：每周几、几点到几点、到哪天为止。
 
 【能做的事】
-- op="add"：新增。字段 date, start, end, title, who, kind。
+- op="add"：新增。字段 date, start, end, title, who, kind，可选 location。
+  - location：用户提到在哪里（地点、店名、教室、城市）就写进 location，不要放进 title；没提就不写。例如“周五晚上7点我们在 Nozawa Bar 吃饭”→ title="吃饭", location="Nozawa Bar"。
   - kind="range"：有开始和结束的一段时间（上课、吃饭、上班…）。
   - kind="point"：只是一个时间点，日历上显示成一条横线（起床、睡觉、出发、到家、落地、闹钟、提醒等只说了一个时刻、没有持续时间的事）。这时 end 写成和 start 一样。例如“我周一九点半起床”→ kind="point", start="09:30", end="09:30", title="起床"。
 - op="update"：修改已有日程，用下面列表里的 id，只写要改的字段。
@@ -237,6 +238,6 @@ ${clip(text, 500)}
 
 【输出】
 只输出一个 JSON 对象，不要任何其它文字：
-{"reply":"给${meName}的简短回复","actions":[{"op":"add","date":"YYYY-MM-DD","start":"HH:MM","end":"HH:MM","title":"...","who":"a|b|both","kind":"range|point","repeat":{"days":[2,4],"until":"YYYY-MM-DD"}（repeat 只在重复时写）}]}
+{"reply":"给${meName}的简短回复","actions":[{"op":"add","date":"YYYY-MM-DD","start":"HH:MM","end":"HH:MM","title":"...","who":"a|b|both","kind":"range|point","location":"（可选）","repeat":{"days":[2,4],"until":"YYYY-MM-DD"}（repeat 只在重复时写）}]}
 reply 要像好朋友发微信：一两句话、温柔自然，说清楚记了什么（哪天几点、谁）。用户用中文就用中文，用英文就用英文。可以偶尔加一个 emoji。`;
 }
