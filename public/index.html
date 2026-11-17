@@ -267,6 +267,13 @@ header{padding:16px 22px 10px}
     <div class="field"><label>发给 TA 的专属链接</label>
       <div style="display:flex;gap:8px"><input id="shareLink" readonly><button class="btn" id="copyLink" type="button">复制</button></div>
     </div>
+    <div class="field"><label>备份 / 搬家</label>
+      <div style="display:flex;gap:8px">
+        <button class="btn" id="exportBtn" type="button" style="flex:1">导出日程</button>
+        <button class="btn" id="importBtn" type="button" style="flex:1">导入日程</button>
+        <input type="file" id="importFile" accept=".json,application/json" style="display:none">
+      </div>
+    </div>
     <div class="note">拿到这个链接的人都能看和编辑这本日历，只发给 TA，别发到公开的地方哦。<br>名字两个人共用；“我是谁”只记在这台设备上，各自选一次就好。</div>
     <div class="actions">
       <button class="btn" id="setCancel">取消</button>
@@ -661,6 +668,30 @@ function openSettings(focusName) { $('#nA').value = state.names.a; $('#nB').valu
 $('#settingsBtn').onclick = () => openSettings(false);
 $('#title').onclick = () => { if (CAL) openSettings(true); };
 $('#title').title = '点一下改名字';
+$('#exportBtn').onclick = () => {
+  const data = state.events.map(({ date, start, end, title, who, kind, seriesId }) => ({ date, start, end, title, who, kind: kind || 'range', ...(seriesId ? { seriesId } : {}) }));
+  const blob = new Blob([JSON.stringify({ names: state.names, events: data }, null, 1)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `日历备份-${ymd(new Date())}.json`;
+  document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+};
+$('#importBtn').onclick = () => $('#importFile').click();
+$('#importFile').onchange = async () => {
+  const f = $('#importFile').files[0]; $('#importFile').value = '';
+  if (!f) return;
+  let list;
+  try { const j = JSON.parse(await f.text()); list = Array.isArray(j) ? j : j.events; if (!Array.isArray(list)) throw 0; }
+  catch (e) { toast('这个文件看不懂，要用“导出日程”得到的文件哦'); return; }
+  const key = e => `${e.date}|${e.start}|${e.end}|${e.title}|${e.who}`;
+  const have = new Set(state.events.map(key));
+  const fresh = list.filter(e => e && e.date && e.start && e.title && ['a', 'b', 'both'].includes(e.who) && !have.has(key({ ...e, end: e.end || e.start })))
+    .map(e => ({ date: e.date, start: e.start, end: e.end || e.start, title: String(e.title).slice(0, 60), who: e.who, kind: e.kind === 'point' ? 'point' : 'range', ...(e.seriesId ? { seriesId: e.seriesId } : {}) }));
+  if (!fresh.length) { toast('没有需要导入的新日程（可能已经导入过了）'); return; }
+  $('#setOverlay').classList.remove('show');
+  try {
+    for (let i = 0; i < fresh.length; i += 150) await addEvents(fresh.slice(i, i + 150));
+    toast(`导入了 ${fresh.length} 个日程 🎉`);
+  } catch (e) { toast('导入到一半出错了：' + e.message + '，再导入一次会自动跳过已有的'); }
+};
 $('#copyLink').onclick = async () => {
   const inp = $('#shareLink');
   try { await navigator.clipboard.writeText(inp.value); toast('链接已复制，发给 TA 吧 💌'); }
