@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#F7F3EE">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="我们的日历">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='26' cy='32' r='16' fill='%23C99A9A'/%3E%3Ccircle cx='38' cy='32' r='16' fill='%238FA9B5' fill-opacity='.85'/%3E%3C/svg%3E">
+<title>我们的日历</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --a:#C99A9A; --a-bg:#F2E1DF; --a-ink:#6E4848;
+  --b:#8FA9B5; --b-bg:#DDE8EC; --b-ink:#3E5763;
+  --both:#A99BBF; --both-bg:#E7E1F0; --both-ink:#53466B;
+  --accent:#B98B7B; --sage:#97AC92;
+  --paper:#F7F3EE; --card:#FFFFFF; --line:#EFEAE4; --text:#4A4541; --muted:#A39A92;
+  --hour:58px;
+  --font:"Noto Sans SC","PingFang SC","Hiragino Sans GB","Microsoft YaHei Light","Microsoft YaHei",sans-serif; --gutter:58px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--paper);color:var(--text);
+  font-family:var(--font);font-weight:300;letter-spacing:.04em;font-size:14px}
+body{display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
+button{font:inherit;cursor:pointer;color:inherit}
+.serif{font-family:var(--font)}
+
+/* ---------- header ---------- */
+header{padding:16px 22px 10px}
+.toprow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;row-gap:8px}
+.title{font-family:var(--font);font-size:25px;font-weight:300;letter-spacing:.18em;white-space:nowrap}
+.title .amp{color:var(--accent);margin:0 .5em;font-weight:200}
+#clock{font-family:var(--font);color:var(--muted);font-size:16px;white-space:nowrap;margin-left:6px}
+.spacer{flex:1}
+.btn{border:1px solid #E3DDD6;background:#fff;border-radius:999px;padding:6px 16px}
+.btn:hover{background:#FBF9F6}
+.icon-btn{border:none;background:none;width:34px;height:34px;border-radius:50%;font-size:20px;line-height:1;color:#7d746d;display:inline-flex;align-items:center;justify-content:center}
+.icon-btn:hover{background:#EFE9E2}
+.range{font-family:var(--font);font-size:17px;white-space:nowrap;margin:0 4px}
+.chip{border:1px solid #E3DDD6;border-radius:999px;padding:5px 12px;background:#fff;font-size:13px;white-space:nowrap}
+.chip:hover{background:#FBF9F6}
+#people{display:none;gap:26px;margin-top:14px;flex-wrap:wrap;row-gap:10px}
+.person{display:flex;align-items:center;gap:10px;min-width:190px;flex:1;max-width:320px}
+.avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:400;flex:none;font-family:var(--font)}
+.pinfo{flex:1;min-width:0}
+.pname{display:flex;justify-content:space-between;font-size:13px;font-weight:400;margin-bottom:5px}
+.pname small{color:var(--muted);font-weight:400}
+.bar{height:5px;border-radius:5px;background:#ECE6DF;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:5px;transition:width .4s}
+
+/* ---------- calendar ---------- */
+#wrap{flex:1;min-height:0;margin:4px 16px 10px;background:var(--card);border-radius:20px;box-shadow:0 2px 14px rgba(120,100,80,.08);position:relative;overflow:hidden}
+#scroller{position:absolute;inset:0;overflow:auto;scroll-snap-type:x mandatory;scroll-padding-left:var(--gutter);overscroll-behavior-x:contain}
+.dayhead{scroll-snap-align:start}
+#cal{display:grid;grid-template-columns:var(--gutter) repeat(7,minmax(112px,1fr));min-width:calc(var(--gutter) + 784px)}
+.corner{position:sticky;top:0;left:0;z-index:7;background:#fff;border-bottom:1px solid var(--line)}
+.dayhead{position:sticky;top:0;z-index:6;background:#fff;border-bottom:1px solid var(--line);text-align:left;padding:14px 10px 8px}
+.dhrow{display:flex;align-items:center;gap:6px;font-family:var(--font)}
+.dow{font-size:15px;letter-spacing:.12em;color:#4A4541;font-weight:600}
+.dnum{font-size:17px;color:#6b635d;min-width:26px;height:26px;line-height:26px;text-align:center;border-radius:50%}
+.today .dnum{background:var(--accent);color:#fff;font-size:14px}
+.today .dow{color:var(--text);font-weight:600}
+.sub{display:flex;font-size:13px;margin-top:6px;font-weight:500}
+.sub div{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sub div:first-child{color:var(--a)}
+.sub div:last-child{color:var(--b);padding-left:4px}
+.gutter{position:sticky;left:0;z-index:5;background:#fff}
+.hourlabel{height:var(--hour);font-size:11px;color:var(--muted);text-align:right;padding-right:10px;position:relative;top:-7px;font-family:var(--font)}
+.daycol{position:relative;border-left:1px solid var(--line);height:calc(var(--hour) * 24);
+  background-image:repeating-linear-gradient(to bottom,var(--line) 0 1px,transparent 1px var(--hour));cursor:pointer}
+.daycol .mid{position:absolute;left:50%;top:0;bottom:0;border-left:1px dashed #F3EFEA;pointer-events:none}
+.ev{position:absolute;border-radius:10px;padding:5px 8px;font-size:12px;line-height:1.3;overflow:hidden;cursor:pointer;
+  border:1.5px solid #fff;transition:transform .12s, box-shadow .12s}
+.ev:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(100,80,60,.12)}
+.ev .t{font-weight:400;letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:16px}
+.ev .tm{opacity:.75;font-size:11px;white-space:nowrap}
+.ev .av{position:absolute;top:5px;right:5px;width:16px;height:16px;border-radius:50%;color:#fff;font-size:9px;display:flex;align-items:center;justify-content:center;font-family:var(--font)}
+.ev.short{display:flex;gap:5px;align-items:center;padding-top:2px}
+.ev.short .av{top:50%;transform:translateY(-50%)}
+.ev.a{background:var(--a-bg);color:var(--a-ink);z-index:2}.ev.a .av{background:var(--a)}
+.ev.b{background:var(--b-bg);color:var(--b-ink);z-index:2}.ev.b .av{background:var(--b)}
+.ev.both{background:var(--both-bg);color:var(--both-ink);z-index:1}.ev.both .av{background:var(--both)}
+.ev.fresh{animation:pop 1s ease}
+@keyframes pop{0%{transform:scale(.9);box-shadow:0 0 0 5px rgba(185,139,123,.35)}100%{transform:scale(1)}}
+.pt{position:absolute;height:0;z-index:3;cursor:pointer}
+.pt .ln{position:absolute;left:0;right:0;top:-1px;height:2px;border-radius:2px;background:var(--pc)}
+.pt .dot{position:absolute;left:-1px;top:-5px;width:10px;height:10px;border-radius:50%;background:var(--pc);border:2px solid #fff}
+.pt .lb{position:absolute;left:8px;bottom:3px;font-size:11px;color:var(--pi);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:calc(100% - 14px);font-weight:500;letter-spacing:.06em;background:rgba(255,255,255,.85);padding:0 4px;border-radius:4px}
+.pt:hover .ln{height:3px}
+.pt.a{--pc:var(--a);--pi:var(--a-ink)}.pt.b{--pc:var(--b);--pi:var(--b-ink)}.pt.both{--pc:var(--both);--pi:var(--both-ink)}
+.ptcheck{display:flex;align-items:center;gap:8px;font-size:13px;color:#6b635d;margin:-2px 0 12px;cursor:pointer}
+.ptcheck input{accent-color:var(--accent);width:16px;height:16px}
+.ev,.pt{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.ev{cursor:grab}
+.ev .rz{position:absolute;left:0;right:0;bottom:0;height:9px;cursor:ns-resize}
+.ev .rz::after{content:"";position:absolute;left:50%;bottom:3px;width:18px;height:3px;margin-left:-9px;border-radius:3px;background:currentColor;opacity:0;transition:opacity .15s}
+.ev:hover .rz::after,.ev.dragging .rz::after{opacity:.35}
+.ev.dragging,.pt.dragging{z-index:30 !important;box-shadow:0 8px 22px rgba(90,70,50,.25);cursor:grabbing;opacity:.92;transition:none}
+.ev.dragging{transform:scale(1.02)}
+.pt.dragging .ln{height:3px}
+.nowline{position:absolute;left:-1px;right:0;height:2px;background:var(--accent);z-index:4;pointer-events:none}
+.nowline::before{content:"";position:absolute;left:-5px;top:-4px;width:10px;height:10px;border-radius:50%;background:var(--accent)}
+#fab{position:absolute;right:20px;bottom:20px;width:52px;height:52px;border-radius:50%;border:none;background:var(--both);color:#fff;font-size:28px;line-height:1;box-shadow:0 6px 18px rgba(110,90,140,.35);z-index:8}
+#fab:hover{filter:brightness(1.05)}
+
+/* ---------- chat dock ---------- */
+#dock{max-height:30vh;max-height:30dvh;display:flex;flex-direction:column;flex:none;margin:0 16px 14px;background:#fff;border-radius:20px;box-shadow:0 2px 14px rgba(120,100,80,.08);overflow:hidden}
+#msgs{max-height:0;overflow:auto;transition:max-height .2s ease;padding:0 16px;background:#FBF9F6}
+#dock.open #msgs{max-height:none;flex:1;min-height:0;padding:12px 16px 6px}
+.inputrow{flex:none}
+#micBtn{flex:none;width:40px;height:40px;border-radius:50%;border:none;background:#F4F0EB;color:#7d746d;display:inline-flex;align-items:center;justify-content:center}
+#micBtn:hover{background:#ECE6DF}
+#micBtn.on{background:#C98B7A;color:#fff;animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(201,139,122,.45)}50%{box-shadow:0 0 0 8px rgba(201,139,122,0)}}
+.msg{display:flex;flex-direction:column;align-items:flex-start;margin:8px 0}
+.msg.mine{align-items:flex-end}
+.msg .who{font-size:11px;color:var(--muted);margin:0 4px 3px}
+.bubble{max-width:78%;padding:9px 13px;border-radius:14px;background:#fff;white-space:pre-wrap;word-break:break-word;line-height:1.5;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.msg.mine .bubble{background:#DCE5D3;border-bottom-right-radius:4px}
+.msg.agent .bubble,.msg.other .bubble{border-bottom-left-radius:4px}
+.msg.other .bubble{background:var(--ob)}
+.typing .bubble{color:var(--muted)}
+.hints{display:flex;gap:6px;flex-wrap:wrap;padding:10px 14px 0}
+.hints:empty{display:none}
+.hints button{border:1px solid #E8E2DA;background:#FBF9F6;border-radius:999px;padding:5px 12px;font-size:12px;color:#6b635d}
+.hints button:hover{background:#F3EEE8}
+.inputrow{display:flex;gap:8px;padding:10px 12px;align-items:flex-end}
+#toggleChat{border:none;background:#F4F0EB;border-radius:999px;height:40px;padding:0 14px;font-size:12px;color:#7d746d;white-space:nowrap}
+#input{font-weight:300;letter-spacing:.04em;flex:1;resize:none;border:1px solid #EEE8E1;border-radius:20px;padding:9px 16px;font:inherit;line-height:20px;height:40px;max-height:120px;background:#FBF9F6;outline:none;color:var(--text)}
+#input:focus{border-color:var(--sage);background:#fff}
+#send{background:var(--sage);color:#fff;border:none;border-radius:999px;height:40px;padding:0 20px;font-weight:400}
+#send:disabled{opacity:.45;cursor:default}
+
+/* ---------- modals ---------- */
+.overlay{position:fixed;inset:0;background:rgba(74,69,65,.3);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+.overlay.show{display:flex}
+.modal{background:#fff;border-radius:20px;padding:22px 22px 18px;width:min(400px,100%);box-shadow:0 16px 48px rgba(80,60,40,.18)}
+.modal h3{margin:0 0 16px;font-weight:400;font-size:19px;font-family:var(--font)}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
+.field input,.field select{width:100%;padding:9px 12px;border:1px solid #E8E2DA;border-radius:10px;font:inherit;background:#FBF9F6;color:var(--text)}
+.field input:focus,.field select:focus{outline:none;border-color:var(--accent);background:#fff}
+.row{display:flex;gap:10px}.row .field{flex:1}
+.whopick{display:flex;gap:8px}
+.whopick button{flex:1;border:2px solid #EEE8E1;background:#fff;border-radius:12px;padding:9px 4px;font-size:13px}
+.whopick button.on{border-color:var(--c);background:color-mix(in srgb,var(--c) 18%,#fff);font-weight:400}
+.actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn.primary:hover{filter:brightness(.96);background:var(--accent)}
+.btn.danger{color:#B5665A;margin-right:auto}
+.btn.danger.confirm{background:#B5665A;color:#fff;border-color:#B5665A}
+.bigpick{display:flex;gap:12px;margin-top:6px}
+.bigpick button{flex:1;padding:20px 8px;border-radius:16px;border:none;color:#fff;font-size:18px;font-weight:400;font-family:var(--font)}
+.note{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.6}
+
+#toast{position:fixed;left:50%;bottom:120px;transform:translateX(-50%);background:#5a524c;color:#fff;padding:10px 18px;border-radius:999px;font-size:13px;z-index:60;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw}
+#toast.show{opacity:1}
+
+.break{display:none}
+.zoom{display:inline-flex;border:1px solid #E3DDD6;border-radius:999px;background:#fff;overflow:hidden}
+.zoom .icon-btn{border-radius:0;width:34px;height:30px;font-size:18px}
+#scroller{touch-action:pan-x pan-y}
+@media (max-width:700px){
+  :root{--hour:54px;--gutter:42px}
+  header{padding:12px 14px 6px}
+  .toprow{gap:4px;row-gap:6px}
+  .title{font-size:19px;letter-spacing:.1em;order:0}
+  .title .amp{margin:0 .3em}
+  #clock{display:none}
+  .spacer{order:0}
+  #meChip,#settingsBtn{order:1}
+  .break{display:block;order:2;flex-basis:100%;height:0}
+  #todayBtn,#prevBtn,#nextBtn,.range{order:3}
+  .zoom{order:4;margin-left:auto}
+  #todayBtn{padding:4px 14px;font-size:13px}
+  .range{font-size:15px;margin-left:6px}
+  #wrap{margin:4px 8px 8px;border-radius:16px}
+  #cal{min-width:0 !important}
+  .dayhead{padding:10px 4px 6px;text-align:center}
+  .dhrow{justify-content:center;gap:4px}
+  .dow{font-size:13px;letter-spacing:.04em}
+  .dnum{font-size:15px;min-width:24px;height:24px;line-height:24px}
+  .today .dnum{font-size:13px}
+  .sub{font-size:13px;text-align:center}
+  .sub div:last-child{padding-left:0}
+  .hourlabel{font-size:10px;padding-right:6px}
+  .ev{padding:4px 5px;border-radius:8px}
+  .ev .av{display:none}
+  .ev .t{padding-right:0;white-space:normal;word-break:break-all;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;font-size:12px;letter-spacing:.02em}
+  .ev .tm{font-size:10px;letter-spacing:0;white-space:normal}
+  .ev.short .tm{display:none}
+  .ev.short .t{-webkit-line-clamp:1;word-break:normal;white-space:nowrap;text-overflow:ellipsis;display:block}
+  .pt .lb{font-size:11px;letter-spacing:.02em;left:4px;padding:1px 3px;white-space:normal;line-height:1.15;max-width:calc(100% - 4px);word-break:normal;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  #fab{width:48px;height:48px;right:14px;bottom:14px}
+  #dock{margin:0 8px 8px;border-radius:18px}
+  .hints{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  .hints button{white-space:nowrap;flex:none}
+  #input{font-size:16px}
+  #toggleChat{padding:0 10px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="toprow">
+    <div class="title" id="title"></div>
+    <div id="clock"></div>
+    <div class="spacer"></div>
+    <button class="btn" id="todayBtn">今天</button>
+    <button class="icon-btn" id="prevBtn" title="上一周">‹</button>
+    <button class="icon-btn" id="nextBtn" title="下一周">›</button>
+    <div class="break"></div>
+    <div class="range" id="range"></div>
+    <div class="zoom"><button class="icon-btn" id="zoomOut" title="缩小">−</button><button class="icon-btn" id="zoomIn" title="放大">+</button></div>
+    <button class="chip" id="meChip"></button>
+    <button class="icon-btn" id="settingsBtn" title="设置">⚙</button>
+  </div>
+</header>
+
+<main id="wrap"><div id="scroller"><div id="cal"></div></div><button id="fab" title="新日程">+</button></main>
+
+<div id="dock">
+  <div id="msgs"></div>
+  <div class="inputrow">
+    <button id="toggleChat">聊天 ▴</button>
+    <button id="micBtn" title="按一下开始说话，再按一下停止" style="display:none"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg></button>
+    <textarea id="input" rows="1" placeholder="今天有什么新的安排"></textarea>
+    <button id="send">发送</button>
+  </div>
+</div>
+
+<!-- event editor -->
+<div class="overlay" id="evOverlay">
+  <div class="modal">
+    <h3 id="evTitle">新日程</h3>
+    <div class="field"><label>做什么</label><input id="fTitle" placeholder="比如：普拉提"></div>
+    <div class="field"><label>日期</label><input id="fDate" type="date"></div>
+    <div class="row">
+      <div class="field"><label>开始</label><input id="fStart" type="time" step="300"></div>
+      <div class="field" id="endField"><label>结束</label><input id="fEnd" type="time" step="300"></div>
+    </div>
+    <label class="ptcheck"><input type="checkbox" id="fPoint"> 只是一个时间点（显示成一条线，比如起床、出发）</label>
+    <div class="field"><label>谁</label><div class="whopick" id="fWho"></div></div>
+    <div class="actions">
+      <button class="btn danger" id="delBtn">删除</button>
+      <button class="btn danger confirm" id="delSeriesBtn" style="display:none;margin-right:0">删除全部重复</button>
+      <button class="btn" id="cancelBtn">取消</button>
+      <button class="btn primary" id="saveBtn">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- settings -->
+<div class="overlay" id="setOverlay">
+  <div class="modal">
+    <h3>设置</h3>
+    <div class="row">
+      <div class="field"><label>左边（玫瑰色）的名字</label><input id="nA" maxlength="12"></div>
+      <div class="field"><label>右边（雾蓝色）的名字</label><input id="nB" maxlength="12"></div>
+    </div>
+    <div class="field"><label>发给 TA 的专属链接</label>
+      <div style="display:flex;gap:8px"><input id="shareLink" readonly><button class="btn" id="copyLink" type="button">复制</button></div>
+    </div>
+    <div class="note">拿到这个链接的人都能看和编辑这本日历，只发给 TA，别发到公开的地方哦。<br>名字两个人共用；“我是谁”只记在这台设备上，各自选一次就好。</div>
+    <div class="actions">
+      <button class="btn" id="setCancel">取消</button>
+      <button class="btn primary" id="setSave">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- who am I -->
+<div class="overlay" id="whoOverlay">
+  <div class="modal">
+    <h3>你是谁呀？</h3>
+    <div class="bigpick" id="whoBtns"></div>
+    <div class="note">选好之后，你说“我”的时候助手就知道是你啦。在这台设备上只用选一次，之后点右上角可以改。</div>
+  </div>
+</div>
+
+<!-- first visit: create a calendar -->
+<div class="overlay" id="newOverlay">
+  <div class="modal">
+    <h3>创建你们的日历 ♥</h3>
+    <div class="row">
+      <div class="field"><label>你的名字</label><input id="newA" maxlength="12" placeholder="比如：小瑄"></div>
+      <div class="field"><label>TA 的名字</label><input id="newB" maxlength="12" placeholder="比如：小瀚"></div>
+    </div>
+    <div class="actions"><button class="btn primary" id="newGo" style="width:100%">创建</button></div>
+    <div class="note">创建好以后，在右上角 ⚙ 里复制专属链接发给 TA，两个人就能一起用啦。<br>已经有日历了？直接打开 TA 发给你的链接就行。</div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ================= helpers ================= */
+const $ = s => document.querySelector(s);
+const pad = n => String(n).padStart(2, '0');
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const parseYmd = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+const mondayOf = d => { const x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); return addDays(x, -((x.getDay() + 6) % 7)); };
+const toMin = t => { const [h, m] = String(t || '0:0').split(':').map(Number); return (h || 0) * 60 + (m || 0); };
+const fromMin = m => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
+const DOW = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+const dowOf = s => DOW[(parseYmd(s).getDay() + 6) % 7];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const el = (tag, cls) => { const e = document.createElement(tag); if (cls) e.className = cls; return e; };
+const COLORS = { a: 'var(--a)', b: 'var(--b)', both: 'var(--both)' };
+const normTime = t => { const m = /^(\d{1,2}):(\d{2})$/.exec(String(t || '').trim()); if (!m) return null; const h = +m[1], mi = +m[2]; if (h > 24 || mi > 59) return null; return `${pad(Math.min(h, 24))}:${pad(mi)}`; };
+
+let toastTimer;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 3200); }
+
+const ls = {
+  get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+};
+
+/* ================= which calendar ================= */
+const CAL = (() => {
+  const q = new URLSearchParams(location.search).get('c');
+  const ok = s => /^[A-Za-z0-9_-]{16,48}$/.test(s || '');
+  if (ok(q)) { ls.set('cc_last', q); return q; }
+  const last = ls.get('cc_last');
+  if (ok(last)) { try { history.replaceState(null, '', '?c=' + last); } catch (e) {} return last; }
+  return null;
+})();
+const ME_KEY = 'cc_me_' + CAL;
+
+/* ================= state ================= */
+const state = {
+  events: [],
+  names: { a: '她', b: '他' },
+  me: ['a', 'b'].includes(ls.get(ME_KEY)) ? ls.get(ME_KEY) : null,
+  weekStart: mondayOf(new Date()), // = view start date
+  chat: [],
+  freshIds: new Set(),
+};
+let assistantOn = false, pendingWrites = 0, busy = false, firstRender = true, programmatic = false, colW = 110;
+const diffDays = (a, b) => Math.round((new Date(a.getFullYear(), a.getMonth(), a.getDate()) - new Date(b.getFullYear(), b.getMonth(), b.getDate())) / 86400000);
+const range = { start: null, days: 70 };
+const whoLabel = w => w === 'both' ? '一起' : (state.names[w] || w);
+const initial = w => w === 'both' ? '♥' : String(state.names[w] || '?').slice(-1);
+function renderPeople(mins) {
+  const max = Math.max(60, mins.a, mins.b, mins.both);
+  $('#people').innerHTML = ['a', 'b', 'both'].map(w => {
+    const h = +(mins[w] / 60).toFixed(1);
+    const label = w === 'both' ? '一起' : esc(state.names[w]);
+    return `<div class="person"><div class="avatar" style="background:${COLORS[w]}">${esc(initial(w))}</div>
+      <div class="pinfo"><div class="pname"><span>${label}</span><small>本周 ${h} 小时${w === 'both' && h ? ' ♥' : ''}</small></div>
+      <div class="bar"><i style="width:${Math.round(mins[w] / max * 100)}%;background:${COLORS[w]}"></i></div></div></div>`;
+  }).join('');
+}
+function tickClock() {
+  const n = new Date();
+  $('#clock').textContent = `${n.getMonth() + 1}月${n.getDate()}日 ${DOW[(n.getDay() + 6) % 7]} · ${pad(n.getHours())}:${pad(n.getMinutes())}`;
+}
+tickClock(); setInterval(tickClock, 15000);
+
+/* ================= storage layer (talks to /api) ================= */
+async function api(path, method = 'GET', data) {
+  const opt = { method, headers: { 'Content-Type': 'application/json' } };
+  if (data) opt.body = JSON.stringify(data);
+  const r = await fetch('/api/' + path, opt);
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) { const e = new Error(j.error || ('网络错误 ' + r.status)); e.status = r.status; throw e; }
+  return j;
+}
+async function write(fn) { pendingWrites++; try { return await fn(); } finally { pendingWrites--; } }
+async function addEvents(list) {
+  const payload = list.map(e => ({ date: e.date, start: e.start, end: e.end, title: e.title, who: e.who, kind: e.kind || 'range', seriesId: e.seriesId, by: state.me || '' }));
+  const j = await write(() => api('events', 'POST', { c: CAL, events: payload }));
+  state.events.push(...j.events); render();
+  return j.events.map(e => e.id);
+}
+async function addEvent(ev) { return (await addEvents([ev]))[0]; }
+async function updateEvent(id, fields) {
+  const e = state.events.find(x => x.id === id); if (e) Object.assign(e, fields); render();
+  await write(() => api('events', 'PATCH', { c: CAL, id, fields }));
+}
+async function deleteEvent(id) {
+  state.events = state.events.filter(x => x.id !== id); render();
+  await write(() => api('events', 'DELETE', { c: CAL, id }));
+}
+async function deleteSeries(seriesId) {
+  state.events = state.events.filter(x => x.seriesId !== seriesId); render();
+  await write(() => api('events', 'DELETE', { c: CAL, seriesId }));
+}
+async function addChat(m) {
+  state.chat.push(m); renderChat();
+  await write(() => api('messages', 'POST', { c: CAL, role: m.role, from: m.from, text: m.text }));
+}
+// keep both phones in sync: re-read every few seconds and whenever the page comes back
+let lastChatSig = '';
+async function refresh() {
+  if (!CAL || pendingWrites || busy || (drag && drag.active)) return;
+  try {
+    const [e, m] = await Promise.all([api('events?c=' + CAL), api('messages?c=' + CAL)]);
+    if (pendingWrites || busy) return;
+    const es = JSON.stringify(e.events), ms = JSON.stringify(m.messages.map(x => x.id));
+    if (es !== JSON.stringify(state.events)) { state.events = e.events; render(); }
+    if (ms !== lastChatSig) { lastChatSig = ms; state.chat = m.messages; renderChat(); }
+  } catch (err) { /* offline for a moment: try again next time */ }
+}
+
+/* ================= calendar render ================= */
+function layoutLanes(list) {
+  const out = []; let cluster = [], clusterEnd = -1;
+  const flush = () => {
+    const lanes = [];
+    cluster.forEach(e => { let i = lanes.findIndex(end => end <= e.s); if (i < 0) { i = lanes.length; lanes.push(0); } lanes[i] = e.e; e.lane = i; });
+    cluster.forEach(e => e.lanes = lanes.length);
+    out.push(...cluster); cluster = []; clusterEnd = -1;
+  };
+  list.sort((x, y) => x.s - y.s || y.e - x.e).forEach(e => {
+    if (cluster.length && e.s >= clusterEnd) flush();
+    cluster.push(e); clusterEnd = Math.max(clusterEnd, e.e);
+  });
+  if (cluster.length) flush();
+  return out;
+}
+
+function render() {
+  if (drag && drag.active) { drag.pending = true; return; }
+  const cal = $('#cal');
+  const N = numDays(), todayStr = ymd(new Date());
+  const sc = $('#scroller'), rs = getComputedStyle(document.documentElement);
+  const H = parseFloat(rs.getPropertyValue('--hour')) || 48;
+  const G = parseFloat(rs.getPropertyValue('--gutter')) || 56;
+  // keep the visible start inside the rendered range
+  let idx0 = diffDays(state.weekStart, range.start);
+  if (idx0 < 3 || idx0 + N > range.days - 3) { range.start = addDays(state.weekStart, -28); range.days = 70; idx0 = 28; }
+  colW = Math.max(56, (sc.clientWidth - G) / N);
+  cal.style.gridTemplateColumns = `var(--gutter) repeat(${range.days}, ${colW}px)`;
+  cal.style.minWidth = '0'; cal.style.width = 'max-content';
+  const keepTop = sc.scrollTop;
+  cal.innerHTML = '';
+  updateRangeLabel();
+  $('#title').innerHTML = `${esc(state.names.a)}<span class="amp">&amp;</span>${esc(state.names.b)}`;
+  $('#meChip').textContent = state.me ? (N === 7 ? `我是 ${state.names[state.me]} ▾` : `我是 ${initial(state.me)} ▾`) : '我是谁？';
+
+  cal.append(el('div', 'corner'));
+  const days = [...Array(range.days)].map((_, i) => addDays(range.start, i));
+  days.forEach((d, i) => {
+    const h = el('div', 'dayhead' + (ymd(d) === todayStr ? ' today' : ''));
+    h.innerHTML = `<div class="dhrow"><span class="dow">${dowOf(ymd(d))}</span><span class="dnum">${d.getDate()}</span></div><div class="sub"><div>${esc(initial('a'))}</div><div>${esc(initial('b'))}</div></div>`;
+    cal.append(h);
+  });
+
+  const g = el('div', 'gutter');
+  for (let h = 0; h < 24; h++) { const l = el('div', 'hourlabel'); l.textContent = h === 0 ? '' : `${h}:00`; g.append(l); }
+  cal.append(g);
+
+  const mins = { a: 0, b: 0, both: 0 };
+  days.forEach((d, i) => {
+    const ds = ymd(d);
+    const col = el('div', 'daycol' + (d.getDay() % 6 === 0 ? ' weekend' : ''));
+    col.dataset.date = ds;
+    col.append(el('div', 'mid'));
+
+    const dayAll = state.events.filter(e => e.date === ds);
+    dayAll.filter(e => e.kind === 'point').forEach(e => {
+      const s = Math.max(0, Math.min(1439, toMin(e.start)));
+      const who = ['a', 'b', 'both'].includes(e.who) ? e.who : 'a';
+      const [rl, rw] = { a: [0, 50], b: [50, 50], both: [0, 100] }[who];
+      const node = el('div', `pt ${who}`);
+      node.style.top = `calc(var(--hour) * ${s / 60})`;
+      node.style.left = `calc(${rl}% + 3px)`; node.style.width = `calc(${rw}% - 6px)`;
+      node.innerHTML = `<div class="ln"></div><div class="dot"></div><div class="lb">${N === 7 ? `${e.start.replace(/^0/, '')} ${esc(e.title)}` : `${esc(e.title)} <span style="white-space:nowrap">${e.start.replace(/^0/, '')}</span>`}</div>`;
+      node.title = `${e.title} ${e.start} · ${whoLabel(who)}`;
+      node.addEventListener('click', ev => { ev.stopPropagation(); if (!justDragged) openEditor(e); });
+      attachDrag(node, e, true);
+      col.append(node);
+    });
+    const evs = dayAll.filter(e => e.kind !== 'point').map(e => {
+      const s = Math.max(0, Math.min(1439, toMin(e.start)));
+      let en = toMin(e.end); if (!(en > s)) en = Math.min(1440, s + 60); en = Math.min(1440, en);
+      return { ...e, s, e: en };
+    });
+    const groups = { a: [], b: [], both: [] };
+    evs.forEach(e => (groups[e.who] || groups.a).push(e));
+    Object.entries(groups).forEach(([w, l]) => l.forEach(e => mins[w] += e.e - e.s));
+
+    const regions = { a: [0, 50], b: [50, 50], both: [0, 100] };
+    Object.entries(groups).forEach(([who, list]) => {
+      layoutLanes(list).forEach(e => {
+        const [rl, rw] = regions[who];
+        const w = rw / e.lanes, left = rl + e.lane * w;
+        const node = el('div', `ev ${who}`);
+        const hpx = Math.max((e.e - e.s) / 60 * H - 2, 18);
+        node.style.top = `calc(var(--hour) * ${e.s / 60} + 1px)`;
+        node.style.height = `max(calc(var(--hour) * ${(e.e - e.s) / 60} - 2px), 18px)`;
+        node.style.left = `calc(${left}% + 2px)`;
+        node.style.width = `calc(${w}% - 4px)`;
+        if (hpx < 34) node.classList.add('short');
+        if (state.freshIds.has(e.id)) node.classList.add('fresh');
+        node.innerHTML = `<span class="av">${esc(initial(e.who))}</span><div class="t">${esc(e.title)}</div><div class="tm">${N === 7 ? `${e.start}–${e.end}` : `${shortT(e.start)}–${shortT(e.end)}`}</div>`;
+        node.title = `${e.title}\n${e.start}–${e.end} · ${whoLabel(e.who)}`;
+        node.addEventListener('click', ev => { ev.stopPropagation(); if (!justDragged) openEditor(e); });
+        node.insertAdjacentHTML('beforeend', '<div class="rz"></div>');
+        attachDrag(node, e, false);
+        col.append(node);
+      });
+    });
+
+    if (ds === todayStr) {
+      const now = new Date(), nl = el('div', 'nowline');
+      nl.style.top = `calc(var(--hour) * ${(now.getHours() * 60 + now.getMinutes()) / 60})`;
+      col.append(nl);
+    }
+
+    col.addEventListener('click', ev => {
+      if (justDragged) return;
+      const r = col.getBoundingClientRect();
+      const min = Math.floor(((ev.clientY - r.top) / curHour() * 60) / 30) * 30;
+      const who = (ev.clientX - r.left) < r.width / 2 ? 'a' : 'b';
+      const st = Math.max(0, Math.min(1410, min));
+      openEditor({ date: ds, start: fromMin(st), end: fromMin(Math.min(1439, st + 60)), who, title: '' });
+    });
+    cal.append(col);
+  });
+
+
+  programmatic = true;
+  sc.scrollLeft = idx0 * colW;
+  sc.scrollTop = firstRender ? 7 * H - 8 : keepTop; firstRender = false;
+  requestAnimationFrame(() => { programmatic = false; });
+}
+
+const shortT = t => { const [h, m] = String(t).split(':'); return +m ? `${+h}:${m}` : `${+h}`; };
+function numDays() { const w = window.innerWidth; return w >= 760 ? 7 : w >= 560 ? 5 : w >= 330 ? 3 : 2; }
+function startFor(d) { if (numDays() === 7) return mondayOf(d); const x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); return x; }
+function setWeek(d) { scrollToDate(startFor(d)); }
+function scrollToDate(d, smooth = true) {
+  const idx = diffDays(d, range.start), N = numDays();
+  const far = Math.abs(diffDays(d, state.weekStart)) > N;
+  if (far || !smooth || idx < 3 || idx + N > range.days - 3) { clearTimeout(extendTimer); state.weekStart = d; render(); return; }
+  smoothUntil = Date.now() + 700;
+  $('#scroller').scrollTo({ left: idx * colW, behavior: 'smooth' });
+}
+function updateRangeLabel() {
+  const N = numDays(), ws = state.weekStart, we = addDays(ws, N - 1);
+  $('#range').textContent = ws.getMonth() === we.getMonth()
+    ? (N === 7 ? `${ws.getFullYear()}年` : '') + `${ws.getMonth() + 1}月${ws.getDate()}–${we.getDate()}日`
+    : `${ws.getMonth() + 1}月${ws.getDate()}日 – ${we.getMonth() + 1}月${we.getDate()}日`;
+}
+let hsRaf = 0, extendTimer = 0, smoothUntil = 0;
+$('#scroller').addEventListener('scroll', () => {
+  if (programmatic || hsRaf) return;
+  hsRaf = requestAnimationFrame(() => {
+    hsRaf = 0;
+    const sc = $('#scroller'), N = numDays();
+    const idx = Math.round(sc.scrollLeft / colW);
+    const ns = addDays(range.start, idx);
+    if (ymd(ns) !== ymd(state.weekStart)) { state.weekStart = ns; updateRangeLabel(); }
+    // near an edge: extend once scrolling settles
+    if (idx < 7 || idx + N > range.days - 7) {
+      clearTimeout(extendTimer);
+      extendTimer = setTimeout(function ext() {
+        if (Date.now() < smoothUntil) { extendTimer = setTimeout(ext, 200); return; }
+        const i2 = Math.round($('#scroller').scrollLeft / colW);
+        state.weekStart = addDays(range.start, i2);
+        if (i2 < 7) { range.start = addDays(range.start, -28); range.days += 28; }
+        else if (i2 + numDays() > range.days - 7) { range.days += 28; }
+        if (range.days > 126) { // trim the far side
+          const cur = diffDays(state.weekStart, range.start);
+          if (cur > range.days / 2) { range.start = addDays(range.start, 28); }
+          range.days -= 28;
+        }
+        render();
+      }, 160);
+    }
+  });
+}, { passive: true });
+let lastW = window.innerWidth;
+window.addEventListener('resize', () => { if (Math.abs(window.innerWidth - lastW) < 2) return; lastW = window.innerWidth; render(); });
+state.weekStart = (() => { const t = new Date(); return new Date(t.getFullYear(), t.getMonth(), t.getDate()); })();
+range.start = addDays(state.weekStart, -28);
+$('#prevBtn').onclick = () => scrollToDate(addDays(state.weekStart, -numDays()));
+$('#nextBtn').onclick = () => scrollToDate(addDays(state.weekStart, numDays()));
+const today0 = () => { const t = new Date(); return new Date(t.getFullYear(), t.getMonth(), t.getDate()); };
+$('#todayBtn').onclick = () => scrollToDate(today0());
+$('#fab').onclick = () => {
+  const n = new Date(), st = Math.min(1380, (n.getHours() + 1) * 60);
+  const inWeek = ymd(n) >= ymd(state.weekStart) && ymd(n) <= ymd(addDays(state.weekStart, numDays() - 1));
+  openEditor({ date: inWeek ? ymd(n) : ymd(state.weekStart), start: fromMin(st), end: fromMin(Math.min(1439, st + 60)), who: state.me || 'a', title: '' });
+};
+setInterval(render, 60000);
+
+/* ================= event editor ================= */
+let editing = null, editWho = 'a', delArmed = false;
+function renderWhoPick() {
+  const box = $('#fWho'); box.innerHTML = '';
+  ['a', 'b', 'both'].forEach(w => {
+    const b = el('button'); b.type = 'button'; b.style.setProperty('--c', COLORS[w]);
+    b.textContent = w === 'both' ? '♥ 一起' : state.names[w];
+    if (w === editWho) b.classList.add('on');
+    b.onclick = () => { editWho = w; renderWhoPick(); };
+    box.append(b);
+  });
+}
+function openEditor(e) {
+  editing = e; editWho = e.who || 'a'; delArmed = false;
+  $('#evTitle').textContent = e.id ? '编辑日程' : '新日程';
+  $('#fTitle').value = e.title || '';
+  $('#fDate').value = e.date; $('#fStart').value = e.start; $('#fEnd').value = e.kind === 'point' ? fromMin(Math.min(1439, toMin(e.start) + 60)) : e.end;
+  $('#fPoint').checked = e.kind === 'point'; $('#endField').style.visibility = e.kind === 'point' ? 'hidden' : '';
+  $('#delBtn').style.display = e.id ? '' : 'none';
+  $('#delBtn').textContent = '删除'; $('#delBtn').classList.remove('confirm');
+  $('#delSeriesBtn').style.display = 'none'; $('#cancelBtn').style.display = '';
+  renderWhoPick();
+  $('#evOverlay').classList.add('show');
+  setTimeout(() => $('#fTitle').focus(), 50);
+}
+function closeEditor() { $('#evOverlay').classList.remove('show'); editing = null; }
+$('#cancelBtn').onclick = closeEditor;
+$('#fPoint').onchange = () => { $('#endField').style.visibility = $('#fPoint').checked ? 'hidden' : ''; };
+$('#evOverlay').addEventListener('click', e => { if (e.target.id === 'evOverlay') closeEditor(); });
+$('#saveBtn').onclick = async () => {
+  const title = $('#fTitle').value.trim(), date = $('#fDate').value;
+  const isPt = $('#fPoint').checked;
+  const start = normTime($('#fStart').value), end = isPt ? start : normTime($('#fEnd').value);
+  if (!title) { toast('写一下做什么吧'); return; }
+  if (!date || !start || !end) { toast('日期和时间要填完整哦'); return; }
+  if (!isPt && toMin(end) <= toMin(start)) { toast('结束时间要晚于开始时间'); return; }
+  const fields = { title, date, start, end, who: editWho, kind: isPt ? 'point' : 'range' };
+  const wasId = editing && editing.id;
+  closeEditor();
+  try {
+    if (wasId) await updateEvent(wasId, fields);
+    else { const id = await addEvent({ ...fields, by: state.me || '', createdAt: Date.now() }); flash(id); }
+  } catch (err) { toast('没存上：' + (err.message || err.code || err)); }
+};
+$('#delBtn').onclick = async () => {
+  if (!delArmed) {
+    delArmed = true; $('#delBtn').textContent = editing.seriesId ? '只删这次' : '确定删除？'; $('#delBtn').classList.add('confirm');
+    if (editing.seriesId) { $('#delSeriesBtn').style.display = ''; $('#cancelBtn').style.display = 'none'; }
+    return;
+  }
+  const id = editing.id; closeEditor();
+  try { await deleteEvent(id); } catch (err) { toast('删除失败：' + (err.message || err.code)); }
+};
+$('#delSeriesBtn').onclick = async () => {
+  const sid = editing && editing.seriesId; closeEditor(); if (!sid) return;
+  try { await deleteSeries(sid); toast('整个重复系列已删除'); }
+  catch (err) { toast('删除失败：' + (err.message || err.code)); }
+};
+function flash(id) { if (!id) return; state.freshIds.add(id); render(); setTimeout(() => { state.freshIds.delete(id); }, 1500); }
+
+/* ================= settings & identity ================= */
+const shareUrl = () => location.origin + location.pathname + '?c=' + CAL;
+$('#settingsBtn').onclick = () => { $('#nA').value = state.names.a; $('#nB').value = state.names.b; $('#shareLink').value = shareUrl(); $('#setOverlay').classList.add('show'); };
+$('#copyLink').onclick = async () => {
+  const inp = $('#shareLink');
+  try { await navigator.clipboard.writeText(inp.value); toast('链接已复制，发给 TA 吧 💌'); }
+  catch (e) { inp.focus(); inp.select(); toast('长按链接复制一下～'); }
+};
+$('#setCancel').onclick = () => $('#setOverlay').classList.remove('show');
+$('#setOverlay').addEventListener('click', e => { if (e.target.id === 'setOverlay') $('#setOverlay').classList.remove('show'); });
+$('#setSave').onclick = async () => {
+  const a = $('#nA').value.trim() || state.names.a, b = $('#nB').value.trim() || state.names.b;
+  $('#setOverlay').classList.remove('show');
+  state.names = { a, b }; render(); renderChat();
+  try { await api('calendar', 'PATCH', { c: CAL, nameA: a, nameB: b }); } catch (err) { toast('名字没存上：' + err.message); }
+};
+function openWho() {
+  const box = $('#whoBtns'); box.innerHTML = '';
+  ['a', 'b'].forEach(w => {
+    const b = el('button'); b.style.background = COLORS[w]; b.textContent = state.names[w];
+    b.onclick = () => { state.me = w; ls.set(ME_KEY, w); $('#whoOverlay').classList.remove('show'); render(); renderChat(); };
+    box.append(b);
+  });
+  $('#whoOverlay').classList.add('show');
+}
+$('#meChip').onclick = openWho;
+
+/* ================= chat ================= */
+function renderChat(typing) {
+  const box = $('#msgs'); box.innerHTML = '';
+  state.chat.forEach(m => {
+    let cls = 'msg', who = '';
+    if (m.role === 'agent') { cls += ' agent'; who = '🤖 小助手'; }
+    else if (m.from === state.me) { cls += ' mine'; }
+    else { cls += ' other'; who = state.names[m.from] || '某人'; }
+    const d = el('div', cls);
+    if (m.from && m.from !== state.me && m.role !== 'agent') d.style.setProperty('--ob', m.from === 'a' ? 'var(--a-bg)' : 'var(--b-bg)');
+    d.innerHTML = (who ? `<div class="who">${esc(who)}</div>` : '') + `<div class="bubble">${esc(m.text)}</div>`;
+    box.append(d);
+  });
+  if (typing || busy) { const d = el('div', 'msg agent typing'); d.innerHTML = '<div class="who">🤖 小助手</div><div class="bubble">正在帮你记…</div>'; box.append(d); }
+  box.scrollTop = box.scrollHeight;
+}
+function chatLabel(open) { return window.innerWidth <= 700 ? (open ? '▾' : '💬') : (open ? '聊天 ▾' : '聊天 ▴'); }
+function openDock(open = true) { $('#dock').classList.toggle('open', open); $('#toggleChat').textContent = chatLabel(open); ls.set('cc_dock', open ? '1' : '0'); setTimeout(() => { const b = $('#msgs'); b.scrollTop = b.scrollHeight; }, 220); }
+$('#toggleChat').onclick = () => openDock(!$('#dock').classList.contains('open'));
+if (ls.get('cc_dock') === '1') openDock(true);
+else $('#toggleChat').textContent = chatLabel(false);
+
+const input = $('#input');
+function autosize() { input.style.height = '40px'; input.style.height = Math.min(120, input.scrollHeight) + 'px'; }
+input.addEventListener('input', autosize);
+input.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); } });
+$('#send').onclick = send;
+
+
+function expandRepeat(date, rep) {
+  if (!rep || typeof rep !== 'object') return [date];
+  let days = (Array.isArray(rep.days) ? rep.days : []).map(Number).filter(n => n >= 1 && n <= 7);
+  const start = parseYmd(date);
+  if (!days.length) days = [((start.getDay() + 6) % 7) + 1];
+  const until = /^\d{4}-\d{2}-\d{2}$/.test(rep.until || '') ? parseYmd(rep.until) : addDays(start, 84);
+  const out = [];
+  for (let d = start; d <= until && out.length < 200; d = addDays(d, 1)) {
+    if (days.includes(((d.getDay() + 6) % 7) + 1)) out.push(ymd(d));
+  }
+  return out.length ? out : [date];
+}
+async function applyActions(actions) {
+  let firstDate = null, fails = 0;
+  for (const a of (Array.isArray(actions) ? actions.slice(0, 20) : [])) {
+    try {
+      if (a.op === 'add') {
+        const isPt = a.kind === 'point';
+        const start = normTime(a.start), end = isPt ? start : normTime(a.end);
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(a.date || '') || !start || !end || !a.title) { fails++; continue; }
+        const who = ['a', 'b', 'both'].includes(a.who) ? a.who : state.me;
+        const base = { start, end: isPt ? start : (toMin(end) > toMin(start) ? end : fromMin(Math.min(1439, toMin(start) + 60))), kind: isPt ? 'point' : 'range', title: String(a.title).slice(0, 60), who, by: state.me, createdAt: Date.now() };
+        const dates = expandRepeat(a.date, a.repeat);
+        const seriesId = dates.length > 1 ? 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6) : null;
+        const ids = await addEvents(dates.map(d => seriesId ? { ...base, date: d, seriesId } : { ...base, date: d }));
+        ids.forEach(id => state.freshIds.add(id));
+        firstDate = firstDate || dates[0];
+      } else if (a.op === 'update' && a.id && state.events.some(e => e.id === a.id)) {
+        const f = {};
+        if (/^\d{4}-\d{2}-\d{2}$/.test(a.date || '')) f.date = a.date;
+        if (normTime(a.start)) f.start = normTime(a.start);
+        if (normTime(a.end)) f.end = normTime(a.end);
+        if (a.title) f.title = String(a.title).slice(0, 60);
+        if (['a', 'b', 'both'].includes(a.who)) f.who = a.who;
+        if (a.kind === 'point' || a.kind === 'range') f.kind = a.kind;
+        if (f.kind === 'point' && f.start) f.end = f.start;
+        if (Object.keys(f).length) { await updateEvent(a.id, f); state.freshIds.add(a.id); firstDate = firstDate || f.date || state.events.find(e => e.id === a.id)?.date; }
+      } else if (a.op === 'delete_series' && a.series) {
+        const list = state.events.filter(e => e.seriesId === a.series);
+        firstDate = firstDate || list[0]?.date;
+        if (list.length) await deleteSeries(a.series);
+      } else if (a.op === 'delete' && a.id && state.events.some(e => e.id === a.id)) {
+        firstDate = firstDate || state.events.find(e => e.id === a.id)?.date;
+        await deleteEvent(a.id);
+      }
+    } catch (err) { fails++; }
+  }
+  if (firstDate) { const fd = parseYmd(firstDate); if (fd < state.weekStart || fd >= addDays(state.weekStart, numDays())) setWeek(fd); else render(); }
+  setTimeout(() => state.freshIds.clear(), 1500);
+  return fails;
+}
+
+async function send() {
+  const text = input.value.trim();
+  if (!text || busy || !assistantOn) return;
+  if (!state.me) { openWho(); return; }
+  busy = true; $('#send').disabled = true;
+  input.value = ''; autosize(); openDock(true);
+  const mine = { role: 'user', from: state.me, text, ts: Date.now() };
+  state.chat.push(mine); renderChat(true);
+  try {
+    const n = new Date();
+    const res = await api('assistant', 'POST', { c: CAL, text, me: state.me, today: ymd(n), time: `${pad(n.getHours())}:${pad(n.getMinutes())}` });
+    state.chat.pop();
+    try { await addChat(mine); } catch (e) {}
+    const fails = await applyActions(res.actions);
+    let reply = String(res.reply || '好哒，记下啦～');
+    if (fails) reply += `\n（有 ${fails} 条没记成功，可以再说一次～）`;
+    await addChat({ role: 'agent', text: reply, ts: Date.now() + 1 });
+  } catch (e) {
+    if (state.chat[state.chat.length - 1] === mine) { state.chat.pop(); try { await addChat(mine); } catch (e2) {} }
+    toast('小助手出了点问题：' + (e && e.message || e));
+  } finally {
+    busy = false; $('#send').disabled = false; renderChat();
+  }
+}
+
+/* ================= drag to move / resize ================= */
+let drag = null, justDragged = false;
+function colAt(x) {
+  for (const c of document.querySelectorAll('.daycol')) { const r = c.getBoundingClientRect(); if (x >= r.left && x < r.right) return c; }
+  return null;
+}
+function attachDrag(node, ev, isPoint) {
+  node.addEventListener('pointerdown', pe => {
+    if (pe.button !== 0 || drag) return;
+    const mode = pe.target.classList.contains('rz') ? 'resize' : 'move';
+    const s0 = toMin(ev.start), e0 = isPoint ? s0 : Math.max(toMin(ev.end), s0 + 15);
+    drag = { node, ev, isPoint, mode, s0, e0, x0: pe.clientX, y0: pe.clientY, touch: pe.pointerType !== 'mouse', active: false, date: ev.date, s: s0, e: e0, id: pe.pointerId };
+    if (drag.touch) drag.timer = setTimeout(() => activateDrag(), 380);
+    document.addEventListener('pointermove', onDragMove);
+    document.addEventListener('pointerup', onDragEnd);
+    document.addEventListener('pointercancel', onDragCancel);
+  });
+}
+function activateDrag() {
+  if (!drag || drag.active) return;
+  drag.active = true; drag.node.classList.add('dragging');
+  try { navigator.vibrate && navigator.vibrate(15); } catch (e) {}
+}
+function onDragMove(pe) {
+  if (!drag || pe.pointerId !== drag.id) return;
+  const dx = pe.clientX - drag.x0, dy = pe.clientY - drag.y0;
+  if (!drag.active) {
+    if (drag.touch) { if (Math.hypot(dx, dy) > 8) cleanupDrag(); return; } // finger moved first = scrolling
+    if (Math.hypot(dx, dy) < 4) return;
+    activateDrag();
+  }
+  pe.preventDefault();
+  const dMin = Math.round(dy / curHour() * 60 / 15) * 15;
+  const d = drag;
+  if (d.mode === 'resize') {
+    d.s = d.s0; d.e = Math.max(d.s0 + 15, Math.min(1440, d.e0 + dMin));
+  } else {
+    const dur = d.e0 - d.s0;
+    d.s = Math.max(0, Math.min(1440 - Math.max(dur, 15), d.s0 + dMin)); d.e = d.s + dur;
+    const col = colAt(pe.clientX);
+    if (col && col.dataset.date !== d.date) { d.date = col.dataset.date; col.append(d.node); }
+  }
+  d.node.style.top = `calc(var(--hour) * ${d.s / 60}${d.isPoint ? '' : ' + 1px'})`;
+  if (!d.isPoint) d.node.style.height = `max(calc(var(--hour) * ${(d.e - d.s) / 60} - 2px), 18px)`;
+  const tm = d.node.querySelector(d.isPoint ? '.lb' : '.tm');
+  if (tm) tm.textContent = d.isPoint ? `${d.ev.title} ${fromMin(d.s).replace(/^0/, '')}` : `${fromMin(d.s)}–${fromMin(Math.min(d.e, 1439))}`;
+}
+async function onDragEnd(pe) {
+  if (!drag || pe.pointerId !== drag.id) return;
+  const d = drag; cleanupDrag();
+  if (!d.active) return;
+  justDragged = true; setTimeout(() => { justDragged = false; }, 50);
+  d.node.classList.remove('dragging');
+  const start = fromMin(d.s), end = d.isPoint ? start : fromMin(Math.min(d.e, 1439));
+  const changed = d.date !== d.ev.date || start !== d.ev.start || end !== d.ev.end;
+  if (changed) {
+    try { await updateEvent(d.ev.id, { date: d.date, start, end }); toast(`已改到 ${d.date.slice(5).replace('-', '/')} ${start}${d.isPoint ? '' : '–' + end}`); }
+    catch (err) { toast('没改成功：' + (err.message || err.code)); }
+  }
+  render();
+}
+function onDragCancel() { const d = drag; cleanupDrag(); if (d && d.active) render(); }
+function cleanupDrag() {
+  if (!drag) return;
+  clearTimeout(drag.timer);
+  const pending = drag.pending;
+  drag = null;
+  document.removeEventListener('pointermove', onDragMove);
+  document.removeEventListener('pointerup', onDragEnd);
+  document.removeEventListener('pointercancel', onDragCancel);
+  if (pending) setTimeout(render, 0);
+}
+// while dragging with a finger, stop the page from scrolling
+document.addEventListener('touchmove', e => { if (drag && drag.active) e.preventDefault(); }, { passive: false });
+document.addEventListener('contextmenu', e => { if (drag) e.preventDefault(); });
+
+/* ================= zoom ================= */
+const ZMIN = 0.5, ZMAX = 2.4;
+let zoom = (() => { const z = parseFloat(ls.get('cc_zoom')); return z >= ZMIN && z <= ZMAX ? z : 1; })();
+const baseHour = () => window.innerWidth <= 700 ? 54 : 58;
+const curHour = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hour')) || 58;
+function applyZoom(z, anchorY) {
+  z = Math.max(ZMIN, Math.min(ZMAX, z));
+  const sc = $('#scroller'), oldH = curHour(), newH = Math.round(baseHour() * z * 10) / 10;
+  const headH = (document.querySelector('.dayhead') || {}).offsetHeight || 0;
+  const y = anchorY == null ? sc.clientHeight / 2 : anchorY;
+  const minute = (sc.scrollTop + y - headH) / oldH * 60;
+  zoom = z;
+  document.documentElement.style.setProperty('--hour', newH + 'px');
+  sc.scrollTop = headH + minute / 60 * newH - y;
+  clearTimeout(applyZoom.t);
+  applyZoom.t = setTimeout(() => { ls.set('cc_zoom', String(zoom)); document.querySelectorAll('.ev').forEach(n => n.classList.toggle('short', n.offsetHeight < 34)); }, 150);
+}
+document.documentElement.style.setProperty('--hour', baseHour() * zoom + 'px');
+window.addEventListener('resize', () => document.documentElement.style.setProperty('--hour', baseHour() * zoom + 'px'));
+$('#zoomIn').onclick = () => applyZoom(zoom * 1.25);
+$('#zoomOut').onclick = () => applyZoom(zoom / 1.25);
+(() => {
+  const sc = $('#scroller');
+  // trackpad pinch / ctrl + wheel on computer
+  sc.addEventListener('wheel', e => {
+    if (!e.ctrlKey) return;
+    e.preventDefault();
+    const r = sc.getBoundingClientRect();
+    applyZoom(zoom * Math.exp(-e.deltaY * 0.01), e.clientY - r.top);
+  }, { passive: false });
+  // two-finger pinch on phone
+  let p0 = null;
+  const dist = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+  sc.addEventListener('touchstart', e => { if (e.touches.length === 2) { const r = sc.getBoundingClientRect(); p0 = { d: dist(e.touches), z: zoom, y: (e.touches[0].clientY + e.touches[1].clientY) / 2 - r.top }; } }, { passive: true });
+  sc.addEventListener('touchmove', e => { if (p0 && e.touches.length === 2) { e.preventDefault(); applyZoom(p0.z * dist(e.touches) / p0.d, p0.y); } }, { passive: false });
+  sc.addEventListener('touchend', e => { if (e.touches.length < 2) p0 = null; });
+  ['gesturestart', 'gesturechange'].forEach(n => sc.addEventListener(n, e => e.preventDefault(), { passive: false }));
+})();
+
+/* ================= voice input (browser speech recognition) ================= */
+const defaultPh = () => window.innerWidth <= 700 ? '有什么新安排？' : '今天有什么新的安排';
+input.placeholder = defaultPh();
+let rec = null, vBase = '', vFinal = '', vPartial = '', stopByUser = false;
+function showVoice() { input.value = (vBase + vFinal + vPartial).replace(/^\s+/, ''); autosize(); }
+function setupVoice() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) return;                           // e.g. Firefox: keep typing (or use the keyboard's mic)
+  const mic = $('#micBtn'); mic.style.display = '';
+  mic.onclick = () => {
+    if (rec) { stopByUser = true; try { rec.stop(); } catch (e) {} return; }
+    try { rec = new SR(); } catch (e) { mic.style.display = 'none'; return; }
+    rec.lang = 'zh-CN'; rec.interimResults = true; rec.continuous = true;
+    vBase = input.value ? input.value + ' ' : ''; vFinal = ''; vPartial = ''; stopByUser = false;
+    rec.onresult = e => {
+      let interim = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const r = e.results[i];
+        if (r.isFinal) vFinal += r[0].transcript; else interim += r[0].transcript;
+      }
+      vPartial = interim; showVoice();
+    };
+    rec.onerror = e => {
+      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') toast('没有麦克风权限，可以在浏览器设置里打开，或者继续打字～');
+      else if (e.error === 'no-speech') toast('没听到声音，再试一次？');
+      else if (e.error !== 'aborted') toast('语音没听清，再试一次？');
+    };
+    rec.onend = () => {
+      rec = null; mic.classList.remove('on'); input.placeholder = defaultPh();
+      if (vPartial) { vFinal += vPartial; vPartial = ''; }
+      showVoice();
+      if (stopByUser && input.value.trim() && vFinal.trim()) send();
+    };
+    try { rec.start(); mic.classList.add('on'); input.placeholder = '在听呢，说完再按一下 🎙'; }
+    catch (e) { rec = null; toast('麦克风打不开，可以继续打字～'); }
+  };
+}
+
+/* ================= boot ================= */
+render(); renderChat(); setupVoice();
+
+function showLanding() {
+  $('#newOverlay').classList.add('show');
+  $('#newGo').onclick = async () => {
+    const a = $('#newA').value.trim(), b = $('#newB').value.trim();
+    if (!a || !b) { toast('两个名字都写一下吧'); return; }
+    $('#newGo').disabled = true; $('#newGo').textContent = '创建中…';
+    try {
+      const j = await api('calendar', 'POST', { nameA: a, nameB: b });
+      ls.set('cc_last', j.id); ls.set('cc_me_' + j.id, 'a');
+      location.href = location.pathname + '?c=' + j.id + '#new';
+    } catch (e) { toast('没创建成功：' + e.message); $('#newGo').disabled = false; $('#newGo').textContent = '创建'; }
+  };
+}
+
+(async () => {
+  if (!CAL) { input.disabled = true; $('#send').disabled = true; showLanding(); return; }
+  try {
+    const j = await api('calendar?c=' + CAL);
+    state.names = { a: j.calendar.nameA, b: j.calendar.nameB };
+    document.title = `${state.names.a} & ${state.names.b} 的日历`;
+    render(); renderChat();
+  } catch (e) {
+    if (e.status === 404 || e.status === 400) { ls.set('cc_last', ''); toast('找不到这本日历，链接可能不完整'); showLanding(); return; }
+    toast('暂时连不上，稍后会自动重试');
+  }
+  if (!state.me) openWho();
+  if (location.hash === '#new') { history.replaceState(null, '', location.pathname + location.search); setTimeout(() => toast('创建好啦！点右上角 ⚙ 复制链接发给 TA 💌'), 600); }
+  await refresh();
+  setInterval(refresh, 6000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
+  window.addEventListener('focus', refresh);
+  try { assistantOn = !!(await api('assistant')).available; } catch (e) { assistantOn = false; }
+  if (!assistantOn) {
+    input.placeholder = '小助手暂不可用，点日历添加';
+    input.disabled = true; $('#send').disabled = true; $('#micBtn').style.display = 'none';
+  }
+})();
+</script>
+</body>
+</html>
