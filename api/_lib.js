@@ -31,7 +31,8 @@ export const WHO = ['a', 'b', 'both'];
 export const clip = (s, n) => String(s ?? '').slice(0, n);
 
 /* ---------------- storage ---------------- */
-const SB_URL = (process.env.SUPABASE_URL || '').replace(/\/$/, '');
+// accept the URL with or without a trailing /rest/v1 (the Data API page shows it that way)
+const SB_URL = (process.env.SUPABASE_URL || '').trim().replace(/\/+$/, '').replace(/\/rest\/v1$/, '');
 const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || '';
 
 async function sb(path, { method = 'GET', body: b, prefer } = {}) {
