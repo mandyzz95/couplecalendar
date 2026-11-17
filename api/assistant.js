@@ -22,7 +22,7 @@ export default async function handler(req, res) {
     const used = await store.bumpUsage(cal.id, b.today);
     if (used > limit) return send(res, 200, { reply: `今天已经问了 ${limit} 次啦，明天再来找我吧～现在可以先手动添加。`, actions: [], limited: true });
 
-    const [evRows, msgRows] = await Promise.all([store.listEvents(cal.id), store.listMessages(cal.id, 14)]);
+    const [evRows, msgRows] = await Promise.all([store.listEvents(cal.id), store.listMessages(cal.id, 9)]);
     const prompt = buildPrompt({
       text, me: b.me, today: b.today, time: b.time,
       names: { a: cal.name_a, b: cal.name_b },
