@@ -300,7 +300,10 @@ header{padding:16px 22px 10px}
       <div class="field"><label>TA 的名字</label><input id="newB" maxlength="12" placeholder="比如：小瀚"></div>
     </div>
     <div class="actions"><button class="btn primary" id="newGo" style="width:100%">创建</button></div>
-    <div class="note">创建好以后，在右上角 ⚙ 里复制专属链接发给 TA，两个人就能一起用啦。<br>已经有日历了？直接打开 TA 发给你的链接就行。</div>
+    <div class="note">创建好以后，在右上角 ⚙ 里复制专属链接发给 TA，两个人就能一起用啦。</div>
+    <div class="field" style="margin-top:16px;border-top:1px solid #EFEAE4;padding-top:14px"><label>已经有日历了？粘贴专属链接进入</label>
+      <div style="display:flex;gap:8px"><input id="openLink" placeholder="https://…/?c=…"><button class="btn" id="openGo" type="button">进入</button></div>
+    </div>
   </div>
 </div>
 
@@ -663,7 +666,8 @@ $('#delSeriesBtn').onclick = async () => {
 function flash(id) { if (!id) return; state.freshIds.add(id); render(); setTimeout(() => { state.freshIds.delete(id); }, 1500); }
 
 /* ================= settings & identity ================= */
-const shareUrl = () => location.origin + location.pathname + '?c=' + CAL;
+let SITE = null;
+const shareUrl = () => (SITE || (location.origin + location.pathname.replace(/\/$/, ''))) + '/?c=' + CAL;
 function openSettings(focusName) { $('#nA').value = state.names.a; $('#nB').value = state.names.b; $('#shareLink').value = shareUrl(); $('#setOverlay').classList.add('show'); if (focusName) setTimeout(() => { $('#nA').focus(); $('#nA').select(); }, 50); }
 $('#settingsBtn').onclick = () => openSettings(false);
 $('#title').onclick = () => { if (CAL) openSettings(true); };
@@ -980,6 +984,13 @@ render(); renderChat(); setupVoice();
 
 function showLanding() {
   $('#newOverlay').classList.add('show');
+  $('#openGo').onclick = () => {
+    const v = $('#openLink').value.trim();
+    const m = v.match(/[?&]c=([A-Za-z0-9_-]{16,48})/) || v.match(/^([A-Za-z0-9_-]{16,48})$/);
+    if (!m) { toast('这个链接里找不到日历编号，要用 ⚙ 里复制的专属链接哦'); return; }
+    ls.set('cc_last', m[1]);
+    location.href = location.pathname + '?c=' + m[1];
+  };
   $('#newGo').onclick = async () => {
     const a = $('#newA').value.trim(), b = $('#newB').value.trim();
     if (!a || !b) { toast('两个名字都写一下吧'); return; }
@@ -997,6 +1008,7 @@ function showLanding() {
   try {
     const j = await api('calendar?c=' + CAL);
     state.names = { a: j.calendar.nameA, b: j.calendar.nameB };
+    SITE = j.siteUrl || null;
     document.title = `${state.names.a} & ${state.names.b} 的日历`;
     render(); renderChat();
   } catch (e) {

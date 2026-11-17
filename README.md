@@ -43,6 +43,7 @@ A shared weekly calendar for two people, with a chat assistant that turns plain 
 | `SUPABASE_SERVICE_ROLE_KEY` | 第 1 步的 secret key |
 | `ANTHROPIC_API_KEY` | 第 2 步的 key（不用小助手可以不填） |
 | `DAILY_AI_LIMIT` | 每本日历每天最多问小助手几次，例如 `60` |
+| `GLOBAL_DAILY_AI_LIMIT` | 整个网站每天最多问小助手几次（所有日历加起来），例如 `200` |
 
 4. 点 **Deploy**。完成后会得到一个网址，例如 `https://our-calendar.vercel.app`。
 5. 打开这个网址，填上两个人的名字，点"创建"，再到右上角 ⚙ 里复制专属链接发给 TA。

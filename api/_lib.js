@@ -93,6 +93,21 @@ export const toClientEvent = r => ({
 });
 export const toClientMsg = r => ({ id: r.id, role: r.role, from: r.from_who || null, text: r.text, ts: Number(r.ts) });
 
+// Whole-site daily counter, kept on a hidden calendar row so no extra table is needed.
+const SITE_COUNTER = '_site_usage_counter_';
+export async function bumpSiteUsage(day) {
+  if (!(await store.getCalendar(SITE_COUNTER))) {
+    try { await store.createCalendar({ id: SITE_COUNTER, name_a: 'site', name_b: 'usage' }); } catch { /* created by a parallel request */ }
+  }
+  return store.bumpUsage(SITE_COUNTER, day);
+}
+// The public address of the site, for share links (Vercel sets VERCEL_PROJECT_PRODUCTION_URL).
+export function siteUrl() {
+  if (process.env.SITE_URL) return process.env.SITE_URL.replace(/\/$/, '');
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) return 'https://' + process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  return null;
+}
+
 export async function requireCalendar(res, cid) {
   if (!isCalId(cid)) { send(res, 400, { error: 'bad calendar id' }); return null; }
   const cal = await store.getCalendar(cid);

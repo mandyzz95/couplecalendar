@@ -1,7 +1,7 @@
 // GET  /api/calendar?c=ID            -> { calendar }
 // POST /api/calendar {nameA, nameB}  -> { id }            (create a new calendar)
 // PATCH /api/calendar {c, nameA, nameB}                    (rename)
-import { send, body, query, store, newCalId, requireCalendar, clip } from './_lib.js';
+import { send, body, query, store, newCalId, requireCalendar, clip, siteUrl } from './_lib.js';
 
 const shape = c => ({ id: c.id, nameA: c.name_a, nameB: c.name_b });
 
@@ -9,7 +9,7 @@ export default async function handler(req, res) {
   try {
     if (req.method === 'GET') {
       const cal = await requireCalendar(res, query(req).c); if (!cal) return;
-      return send(res, 200, { calendar: shape(cal) });
+      return send(res, 200, { calendar: shape(cal), siteUrl: siteUrl() });
     }
     if (req.method === 'POST') {
       const b = body(req);
