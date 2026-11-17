@@ -32,6 +32,8 @@ button{font:inherit;cursor:pointer;color:inherit}
 header{padding:16px 22px 10px}
 .toprow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;row-gap:8px}
 .title{font-family:var(--font);font-size:25px;font-weight:300;letter-spacing:.18em;white-space:nowrap}
+.title{cursor:pointer;border-radius:10px;padding:2px 6px;margin-left:-6px;transition:background .15s}
+.title:hover{background:#EFE9E2}
 .title .amp{color:var(--accent);margin:0 .5em;font-weight:200}
 #clock{font-family:var(--font);color:var(--muted);font-size:16px;white-space:nowrap;margin-left:6px}
 .spacer{flex:1}
@@ -257,10 +259,10 @@ header{padding:16px 22px 10px}
 <!-- settings -->
 <div class="overlay" id="setOverlay">
   <div class="modal">
-    <h3>设置</h3>
+    <h3>改名字 / 分享</h3>
     <div class="row">
-      <div class="field"><label>左边（玫瑰色）的名字</label><input id="nA" maxlength="12"></div>
-      <div class="field"><label>右边（雾蓝色）的名字</label><input id="nB" maxlength="12"></div>
+      <div class="field"><label>左边（玫瑰色）</label><input id="nA" maxlength="12"></div>
+      <div class="field"><label>右边（雾蓝色）</label><input id="nB" maxlength="12"></div>
     </div>
     <div class="field"><label>发给 TA 的专属链接</label>
       <div style="display:flex;gap:8px"><input id="shareLink" readonly><button class="btn" id="copyLink" type="button">复制</button></div>
@@ -655,7 +657,10 @@ function flash(id) { if (!id) return; state.freshIds.add(id); render(); setTimeo
 
 /* ================= settings & identity ================= */
 const shareUrl = () => location.origin + location.pathname + '?c=' + CAL;
-$('#settingsBtn').onclick = () => { $('#nA').value = state.names.a; $('#nB').value = state.names.b; $('#shareLink').value = shareUrl(); $('#setOverlay').classList.add('show'); };
+function openSettings(focusName) { $('#nA').value = state.names.a; $('#nB').value = state.names.b; $('#shareLink').value = shareUrl(); $('#setOverlay').classList.add('show'); if (focusName) setTimeout(() => { $('#nA').focus(); $('#nA').select(); }, 50); }
+$('#settingsBtn').onclick = () => openSettings(false);
+$('#title').onclick = () => { if (CAL) openSettings(true); };
+$('#title').title = '点一下改名字';
 $('#copyLink').onclick = async () => {
   const inp = $('#shareLink');
   try { await navigator.clipboard.writeText(inp.value); toast('链接已复制，发给 TA 吧 💌'); }
