@@ -16,8 +16,9 @@ function clean(e, partial) {
     if (!f.date || !f.start_time || !f.title) return null;
     f.who = f.who || 'a'; f.kind = f.kind || 'range';
     if (!f.end_time || f.kind === 'point') f.end_time = f.kind === 'point' ? f.start_time : f.end_time;
-    if (e.seriesId) f.series_id = clip(e.seriesId, 40);
-    if (e.by) f.created_by = clip(e.by, 4);
+    // every row in one insert must have the same columns (Supabase rejects mixed rows)
+    f.series_id = e.seriesId ? clip(e.seriesId, 40) : null;
+    f.created_by = e.by ? clip(e.by, 4) : null;
   }
   return f;
 }
