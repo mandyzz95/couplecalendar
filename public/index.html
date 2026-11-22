@@ -107,7 +107,7 @@ header{padding:16px 22px 10px}
 .pt.dragging .ln{height:3px}
 .nowline{position:absolute;left:-1px;right:0;height:2px;background:var(--now);z-index:4;pointer-events:none}
 .nowline::before{content:"";position:absolute;left:-5px;top:-4px;width:10px;height:10px;border-radius:50%;background:var(--now)}
-#fab{position:absolute;right:20px;bottom:20px;width:52px;height:52px;border-radius:50%;border:none;background:var(--both);color:var(--card);font-size:28px;line-height:1;box-shadow:0 6px 18px rgba(110,90,140,.35);z-index:8}
+#fab{position:absolute;right:20px;bottom:20px;width:52px;height:52px;border-radius:50%;border:none;background:var(--accent);color:var(--card);font-size:28px;line-height:1;box-shadow:0 6px 18px rgba(110,90,140,.35);z-index:8}
 #fab:hover{filter:brightness(1.05)}
 
 /* ---------- event popover (single click) ---------- */
@@ -229,7 +229,7 @@ header{padding:16px 22px 10px}
 #toggleChat{border:none;background:var(--soft2);border-radius:999px;height:40px;padding:0 14px;font-size:12px;color:var(--text2);white-space:nowrap}
 #input{font-weight:300;letter-spacing:.04em;flex:1;resize:none;border:1px solid var(--border);border-radius:20px;padding:9px 16px;font:inherit;line-height:20px;height:40px;max-height:120px;background:var(--soft);outline:none;color:var(--text)}
 #input:focus{border-color:var(--sage);background:var(--card)}
-#send{background:var(--sage);color:var(--card);border:none;border-radius:999px;height:40px;padding:0 20px;font-weight:400}
+#send{background:var(--send);color:var(--card);border:none;border-radius:999px;height:40px;padding:0 20px;font-weight:400}
 #send:disabled{opacity:.45;cursor:default}
 
 /* ---------- modals ---------- */
@@ -271,8 +271,9 @@ header{padding:16px 22px 10px}
 #modeBtn .orbit.instant{transition:none}
 #modeBtn .sun,#modeBtn .moon{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;transform-origin:50% 140%}
 #modeBtn .moon{transform:rotate(180deg)}
-#modeBtn .sun svg{color:color-mix(in srgb,var(--a) 70%,var(--a-ink))}
-#modeBtn .moon svg{color:var(--both)}
+#modeBtn .sun svg{color:var(--tool)}
+#modeBtn .moon svg{color:var(--tool)}
+#paletteBtn,#settingsBtn{color:var(--tool)}
 /* smooth day <-> night: the whole page cross-fades as one picture */
 html.vt-theme::view-transition-old(root){animation:none;mix-blend-mode:normal}
 html.vt-theme::view-transition-new(root){animation:vtFadeIn .8s ease-in-out both;mix-blend-mode:normal}
@@ -356,8 +357,8 @@ html.theme-anim #modeBtn .orbit{transition:transform .9s cubic-bezier(.55,0,.25,
     <div class="zoom"><button class="icon-btn" id="zoomOut" title="缩小">−</button><button class="icon-btn" id="zoomIn" title="放大">+</button></div>
     <button class="chip" id="meChip"></button>
     <button class="icon-btn" id="modeBtn" title="白天 / 夜间"><span class="sky"><span class="orbit" id="orbit"><span class="sun"></span><span class="moon"></span></span></span></button>
-    <button class="icon-btn" id="paletteBtn" title="配色"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.8-.8 1.8-1.7 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-1 .8-1.8 1.8-1.8H17a4 4 0 0 0 4-4c0-4.4-4-8.1-9-8.1z"/><circle cx="7.5" cy="11.5" r="1.2" fill="currentColor"/><circle cx="10.5" cy="7.5" r="1.2" fill="currentColor"/><circle cx="15" cy="7.8" r="1.2" fill="currentColor"/></svg></button>
-    <button class="icon-btn" id="settingsBtn" title="设置">⚙</button>
+    <button class="icon-btn" id="paletteBtn" title="配色"><svg width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" d="M12 3a9 9 0 1 0 0 18c1.1 0 1.8-.8 1.8-1.7 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-1 .8-1.8 1.8-1.8H17a4 4 0 0 0 4-4c0-4.4-4-8.1-9-8.1z"/><circle cx="7.4" cy="11.6" r="1.5" fill="var(--card)"/><circle cx="10.4" cy="7.4" r="1.5" fill="var(--card)"/><circle cx="15" cy="7.7" r="1.5" fill="var(--card)"/><circle cx="17.4" cy="11.4" r="1.3" fill="var(--card)"/></svg></button>
+    <button class="icon-btn" id="settingsBtn" title="设置"><svg width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58z"/><circle cx="12" cy="12" r="3.3" fill="var(--card)"/></svg></button>
   </div>
 </header>
 
@@ -874,7 +875,7 @@ function customTheme(base, c) {
   return t;
 }
 const VAR = { a: '--a', aBg: '--a-bg', aInk: '--a-ink', b: '--b', bBg: '--b-bg', bInk: '--b-ink', both: '--both', bothBg: '--both-bg', bothInk: '--both-ink',
-  accent: '--accent', sage: '--sage', mine: '--mine', now: '--now', danger: '--danger', paper: '--paper', card: '--card', line: '--line', border: '--border', soft: '--soft', soft2: '--soft2', text: '--text', text2: '--text2', muted: '--muted' };
+  accent: '--accent', sage: '--sage', tool: '--tool', send: '--send', mine: '--mine', now: '--now', danger: '--danger', paper: '--paper', card: '--card', line: '--line', border: '--border', soft: '--soft', soft2: '--soft2', text: '--text', text2: '--text2', muted: '--muted' };
 let themePref = (() => { try { return JSON.parse(ls.get('cc_theme') || 'null') || { preset: 'pbp' }; } catch (e) { return { preset: 'pbp' }; } })();
 // Night version of any theme: dark paper, the same hues as soft tints with light text.
 function nightOf(t) {
@@ -891,6 +892,13 @@ const isNight = () => modePref === 'dark';
 function currentTheme() { return themePref.custom ? customTheme(themePref.preset, themePref.custom) : (THEMES[themePref.preset] || THEMES.pbp); }
 function applyTheme() {
   const base = currentTheme(), t = isNight() ? nightOf(base) : { ...base, lbbg: 'rgba(255,255,255,.85)' }, root = document.documentElement.style;
+  const strong = t.dark ? mix(base.both, '#ffffff', 0.12) : mix(base.both, base.bothInk, 0.35);
+  const deep = (c, ink) => t.dark ? mix(c, '#ffffff', 0.12) : mix(c, ink, 0.3);
+  const sendMode = 'me';                                   // send button and my own bubbles use the colour of whoever is typing
+  const sender = state.me === 'b' ? 'b' : 'a';
+  Object.assign(t, { tool: t.dark ? mix(base.a, '#ffffff', 0.15) : mix(base.a, base.aInk, 0.3), accent: strong, sage: strong, now: strong,
+    send: sender === 'b' ? deep(base.b, base.bInk) : deep(base.a, base.aInk),
+    mine: sendMode === 'me' ? (sender === 'b' ? t.bBg : t.aBg) : t.mine });
   root.setProperty('--lbbg', t.lbbg); root.colorScheme = t.dark ? 'dark' : 'light';
   setOrbit(!!t.dark);
   for (const k in VAR) if (t[k]) root.setProperty(VAR[k], t[k]);
@@ -961,6 +969,7 @@ function openPalette() {
   $('#' + id).addEventListener('input', e => { themePref = { preset: themePref.preset, custom: { ...(themePref.custom || {}), [k]: e.target.value } }; saveTheme(); });
 });
 $('#paletteBtn').onclick = openPalette;
+
 $('#modeBtn').onclick = () => setMode(isNight() ? 'light' : 'dark');
 document.querySelectorAll('#modeSeg button').forEach(b => b.onclick = () => setMode(b.dataset.m));
 $('#palDone').onclick = () => hideOv('palOverlay');
@@ -1138,7 +1147,7 @@ function openWho() {
   const box = $('#whoBtns'); box.innerHTML = '';
   ['a', 'b'].forEach(w => {
     const b = el('button'); b.style.background = COLORS[w]; b.textContent = state.names[w];
-    b.onclick = () => { state.me = w; ls.set(ME_KEY, w); hideOv('whoOverlay'); render(); renderChat(); };
+    b.onclick = () => { state.me = w; ls.set(ME_KEY, w); applyTheme(); hideOv('whoOverlay'); render(); renderChat(); };
     box.append(b);
   });
   showOv('whoOverlay');
