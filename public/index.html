@@ -261,7 +261,13 @@ header{padding:16px 22px 10px}
 .field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
 .field input,.field select{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:10px;font:inherit;background:var(--soft);color:var(--text)}
 .field input:focus,.field select:focus{outline:none;border-color:var(--accent);background:var(--card)}
-.row{display:flex;gap:10px}.row .field{flex:1}
+.row{display:flex;gap:10px}.row .field{flex:1;min-width:0}
+.namepair{display:flex;gap:6px;align-items:center}
+.field input.init{flex:none;width:40px;height:40px;padding:0;border-radius:50%;text-align:center;font-size:15px;border:none}
+.field input.init.a{background:var(--a-bg);color:var(--a-ink)}.field input.init.b{background:var(--b-bg);color:var(--b-ink)}
+.field input.init::placeholder{color:inherit;opacity:1}
+.field input.init:focus{box-shadow:0 0 0 2px var(--accent)}
+.sub div span{cursor:pointer}
 .whopick{display:flex;gap:8px}
 .whopick button{flex:1;border:2px solid var(--border);background:var(--card);border-radius:12px;padding:9px 4px;font-size:13px}
 .whopick button.on{border-color:var(--c);background:color-mix(in srgb,var(--c) 18%,var(--card));font-weight:400}
@@ -447,10 +453,10 @@ html.theme-anim #modeBtn .orbit{transition:transform .9s cubic-bezier(.55,0,.25,
 <!-- settings -->
 <div class="overlay" id="setOverlay">
   <div class="modal">
-    <h3>改名字 / 分享</h3>
+    <h3>设置</h3>
     <div class="row">
-      <div class="field"><label>左边</label><input id="nA" maxlength="12"></div>
-      <div class="field"><label>右边</label><input id="nB" maxlength="12"></div>
+      <div class="field"><label>左边</label><div class="namepair"><input id="nA" maxlength="12"><input class="init a" id="iA" title="日期下面显示的字"></div></div>
+      <div class="field"><label>右边</label><div class="namepair"><input id="nB" maxlength="12"><input class="init b" id="iB" title="日期下面显示的字"></div></div>
     </div>
     <div class="field"><label>发给 TA 的专属链接</label>
       <div style="display:flex;gap:8px"><input id="shareLink" readonly><button class="btn" id="copyLink" type="button" style="white-space:nowrap;flex:none">复制</button></div>
@@ -462,7 +468,7 @@ html.theme-anim #modeBtn .orbit{transition:transform .9s cubic-bezier(.55,0,.25,
         <input type="file" id="importFile" accept=".json,application/json" style="display:none">
       </div>
     </div>
-    <div class="note">拿到这个链接的人都能看和编辑这本日历，只发给 TA，别发到公开的地方哦。<br>名字两个人共用；“我是谁”只记在这台设备上，各自选一次就好。</div>
+    <div class="note">拿到这个链接的人都能看和编辑这本日历，只发给 TA，别发到公开的地方哦。</div>
     <div class="actions">
       <button class="btn" id="setCancel">取消</button>
       <button class="btn primary" id="setSave">保存</button>
@@ -567,6 +573,7 @@ const ME_KEY = 'cc_me_' + CAL;
 const state = {
   events: [],
   names: { a: '她', b: '他' },
+  inits: (() => { try { return { a: '', b: '', ...JSON.parse(ls.get('cc_init_' + CAL) || '{}') }; } catch (e) { return { a: '', b: '' }; } })(),
   me: ['a', 'b'].includes(ls.get(ME_KEY)) ? ls.get(ME_KEY) : null,
   weekStart: mondayOf(new Date()), // = view start date
   chat: [],
@@ -577,7 +584,11 @@ let assistantOn = false, pendingWrites = 0, busy = false, firstRender = true, pr
 const diffDays = (a, b) => Math.round((new Date(a.getFullYear(), a.getMonth(), a.getDate()) - new Date(b.getFullYear(), b.getMonth(), b.getDate())) / 86400000);
 const range = { start: null, days: 70 };
 const whoLabel = w => w === 'both' ? '一起' : (state.names[w] || w);
-const initial = w => w === 'both' ? '♥' : String(state.names[w] || '?').slice(-1);
+// the one character for each person: what they chose, else the last character of a Chinese name / first letter of anything else
+const firstChar = v => { v = String(v || '').trim(); if (!v) return ''; try { return [...new Intl.Segmenter('zh', { granularity: 'grapheme' }).segment(v)][0].segment; } catch (e) { return [...v][0]; } };
+const lastChar = v => { v = String(v || '').trim(); try { const g = [...new Intl.Segmenter('zh', { granularity: 'grapheme' }).segment(v)]; return g.length ? g[g.length - 1].segment : ''; } catch (e) { return [...v].pop() || ''; } };
+const defaultInitial = name => { name = String(name || '').trim(); if (!name) return '?'; return /[\u3400-\u9fff\uf900-\ufaff]/.test(name) ? lastChar(name.replace(/[^\u3400-\u9fff\uf900-\ufaff]/g, '')) : firstChar(name).toUpperCase(); };
+const initial = w => w === 'both' ? '♥' : ((state.inits && state.inits[w]) || defaultInitial(state.names[w]));
 function renderPeople(mins) {
   const max = Math.max(60, mins.a, mins.b, mins.both);
   $('#people').innerHTML = ['a', 'b', 'both'].map(w => {
@@ -1144,7 +1155,10 @@ function flash(id) { if (!id) return; state.freshIds.add(id); render(); setTimeo
 /* ================= settings & identity ================= */
 let SITE = null;
 const shareUrl = () => (SITE || (location.origin + location.pathname.replace(/\/$/, ''))) + '/?c=' + CAL;
-function openSettings(focusName) { $('#nA').value = state.names.a; $('#nB').value = state.names.b; $('#shareLink').value = shareUrl(); showOv('setOverlay'); if (focusName) setTimeout(() => { $('#nA').focus(); $('#nA').select(); }, 50); }
+function openSettings(focusName) { $('#nA').value = state.names.a; $('#nB').value = state.names.b;
+  $('#iA').value = state.inits.a || ''; $('#iB').value = state.inits.b || ''; $('#iA').placeholder = defaultInitial(state.names.a); $('#iB').placeholder = defaultInitial(state.names.b);
+  if (focusName === 'iA' || focusName === 'iB') { showOv('setOverlay'); setTimeout(() => { $('#' + focusName).focus(); $('#' + focusName).select(); }, 60); $('#shareLink').value = shareUrl(); return; }
+  $('#shareLink').value = shareUrl(); showOv('setOverlay'); if (focusName) setTimeout(() => { $('#nA').focus(); $('#nA').select(); }, 50); }
 $('#settingsBtn').onclick = () => openSettings(false);
 $('#title').onclick = () => { if (CAL) openSettings(true); };
 $('#title').title = '点一下改名字';
@@ -1179,12 +1193,28 @@ $('#copyLink').onclick = async () => {
 };
 $('#setCancel').onclick = () => hideOv('setOverlay');
 $('#setOverlay').addEventListener('click', e => { if (e.target.id === 'setOverlay') hideOv('setOverlay'); });
+// one character only: typing a new one replaces the old one (waits for Chinese input to finish composing)
+['iA', 'iB'].forEach(id => {
+  const inp = $('#' + id), keep = () => { const v = inp.value.trim(); inp.value = v ? lastChar(v) : ''; };
+  inp.addEventListener('input', e => { if (!e.isComposing) keep(); });
+  inp.addEventListener('compositionend', () => setTimeout(keep, 0));
+  inp.addEventListener('focus', () => inp.select());
+});
+// names on the default placeholder follow what is typed in the name box
+$('#nA').addEventListener('input', () => { $('#iA').placeholder = defaultInitial($('#nA').value || state.names.a); });
+$('#nB').addEventListener('input', () => { $('#iB').placeholder = defaultInitial($('#nB').value || state.names.b); });
 $('#setSave').onclick = async () => {
   const a = $('#nA').value.trim() || state.names.a, b = $('#nB').value.trim() || state.names.b;
+  const ia = $('#iA').value.trim(), ib = $('#iB').value.trim();
   hideOv('setOverlay');
-  state.names = { a, b }; render(); renderChat();
-  try { await api('calendar', 'PATCH', { c: CAL, nameA: a, nameB: b }); } catch (err) { toast('名字没存上：' + err.message); }
+  state.names = { a, b }; state.inits = { a: ia, b: ib }; ls.set('cc_init_' + CAL, JSON.stringify(state.inits)); applyTheme(); render(); renderChat();
+  try { await api('calendar', 'PATCH', { c: CAL, nameA: a, nameB: b, initA: ia, initB: ib }); } catch (err) { toast('没存上：' + err.message); }
 };
+// tap a name chip under a date to change that character
+document.addEventListener('click', ev => {
+  const sp = ev.target.closest('.dayhead .sub span'); if (!sp || !CAL) return;
+  openSettings(sp.parentElement === sp.parentElement.parentElement.firstElementChild ? 'iA' : 'iB');
+});
 function openWho() {
   const box = $('#whoBtns'); box.innerHTML = '';
   ['a', 'b'].forEach(w => {
@@ -1510,6 +1540,7 @@ function showLanding() {
   try {
     const j = await api('calendar?c=' + CAL);
     state.names = { a: j.calendar.nameA, b: j.calendar.nameB };
+    if (j.calendar.initA !== undefined && (j.calendar.initA || j.calendar.initB || !ls.get('cc_init_' + CAL))) state.inits = { a: j.calendar.initA || '', b: j.calendar.initB || '' };
     SITE = j.siteUrl || null;
     document.title = `${state.names.a} & ${state.names.b} 的日历`;
     render(); renderChat();

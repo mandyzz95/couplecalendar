@@ -4,6 +4,8 @@ create table if not exists calendars (
   id          text primary key,              -- the secret part of the share link
   name_a      text not null,
   name_b      text not null,
+  initial_a   text,                          -- optional one-character label under each day (default: from the name)
+  initial_b   text,
   created_at  timestamptz not null default now()
 );
 
@@ -48,3 +50,7 @@ alter table ai_usage  enable row level security;
 
 -- Upgrading an older database? Run this line once to add the place field:
 alter table events add column if not exists location text;
+
+-- Upgrading an existing database? Run this once as well:
+alter table calendars add column if not exists initial_a text;
+alter table calendars add column if not exists initial_b text;
