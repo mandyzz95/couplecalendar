@@ -144,6 +144,7 @@ header{padding:16px 22px 10px}
 .seg{display:flex;background:var(--soft2);border-radius:999px;padding:3px;gap:3px}
 .seg button{flex:1;border:none;background:none;border-radius:999px;padding:7px 4px;font-size:13px;color:var(--text2)}
 .seg button.on{background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.12);font-weight:500}
+.theme .mini i.blank{background:#fff;border:1px solid var(--border);border-left:3px solid var(--muted)}
 .custom{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:4px}
 .field .custom label{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;color:var(--text2);cursor:pointer;margin:0}
 .custom input[type=color]{width:42px;height:42px;border:2px solid var(--border);border-radius:50%;padding:0;background:none;cursor:pointer;overflow:hidden}
@@ -714,7 +715,7 @@ setInterval(render, 60000);
 
 /* ================= colour themes ================= */
 const THEMES = {
-  pbp: { name: '粉蓝紫', paper: '#FDFCFE', card: '#FFFFFF', line: '#EFEEF3', border: '#E2E0EA', soft: '#FCFBFE', soft2: '#F4F3F8', text: '#2A2440', text2: '#55506B', muted: '#9C98AE', accent: '#8C74D8', sage: '#86B3EA', mine: '#FDEAF1', now: '#F6B8CF', danger: '#B5485F',
+  pbp: { name: '心动信号', paper: '#FDFCFE', card: '#FFFFFF', line: '#EFEEF3', border: '#E2E0EA', soft: '#FCFBFE', soft2: '#F4F3F8', text: '#2A2440', text2: '#55506B', muted: '#9C98AE', accent: '#8C74D8', sage: '#86B3EA', mine: '#FDEAF1', now: '#F6B8CF', danger: '#B5485F',
     a: '#F6B8CF', aBg: '#FDEAF1', aInk: '#9B3E62', b: '#A9CBF2', bBg: '#E6F1FD', bInk: '#2F5E92', both: '#C6B4F0', bothBg: '#F0EAFD', bothInk: '#5B44A3' },
   sakura: { name: '樱花青', paper: '#FDFAFA', card: '#FFFFFF', line: '#F0EEEC', border: '#E4E1DE', soft: '#FCFCFB', soft2: '#F5F4F2', text: '#23160E', text2: '#5A4A43', muted: '#A6958F', accent: '#23160E', sage: '#9BBCB7', mine: '#F7E1E2', now: '#9BBCB7', danger: '#B5565C',
     a: '#E8B6B9', aBg: '#FBE6E7', aInk: '#8A3F47', b: '#9BBCB7', bBg: '#E2EEEC', bInk: '#2E5550', both: '#B7A08F', bothBg: '#EFE6DF', bothInk: '#4A3428' },
@@ -803,7 +804,11 @@ function renderThemeList() {
   const c = customTheme(themePref.preset, themePref.custom || {});
   const cb = el('button', 'theme custom-tile' + (themePref.custom ? ' on' : ''));
   cb.type = 'button'; cb.style.setProperty('--tp', c.paper); cb.style.setProperty('--tt', c.text);
-  cb.innerHTML = `<div class="nm">自定义</div><div class="mini"><i style="background:${c.aBg};border-left:3px solid ${c.a}"></i><i style="background:${c.bBg};border-left:3px solid ${c.b}"></i><i style="background:${c.bothBg};border-left:3px solid ${c.both}"></i></div>`;
+  const touched = themePref.custom && Object.keys(themePref.custom).length;
+  const sw = touched
+    ? `<i style="background:${c.aBg};border-left:3px solid ${c.a}"></i><i style="background:${c.bBg};border-left:3px solid ${c.b}"></i><i style="background:${c.bothBg};border-left:3px solid ${c.both}"></i>`
+    : '<i class="blank"></i><i class="blank"></i><i class="blank"></i>';      // three white blocks until a colour is picked
+  cb.innerHTML = `<div class="nm">自定义</div><div class="mini">${sw}</div>`;
   cb.onclick = () => {
     themePref = { preset: themePref.preset, custom: themePref.custom || {} }; saveTheme(); syncPickers();
     $('#customField').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
