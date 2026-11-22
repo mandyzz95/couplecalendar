@@ -61,16 +61,17 @@ header{padding:16px 22px 10px}
 .dayhead{scroll-snap-align:start}
 #cal{display:grid;grid-template-columns:var(--gutter) repeat(7,minmax(112px,1fr));min-width:calc(var(--gutter) + 784px)}
 .corner{position:sticky;top:0;left:0;z-index:7;background:var(--card);border-bottom:1px solid var(--line)}
-.dayhead{position:sticky;top:0;z-index:6;background:var(--card);border-bottom:1px solid var(--line);text-align:left;padding:14px 10px 8px}
-.dhrow{display:flex;align-items:center;gap:6px;font-family:var(--font)}
-.dow{font-size:15px;letter-spacing:.12em;color:var(--text);font-weight:600}
-.dnum{font-size:17px;color:var(--text2);min-width:26px;height:26px;line-height:26px;text-align:center;border-radius:50%}
-.today .dnum{background:var(--accent);color:var(--card);font-size:14px}
-.today .dow{color:var(--text);font-weight:600}
-.sub{display:flex;font-size:13px;margin-top:6px;font-weight:500}
-.sub div{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.sub div:first-child{color:color-mix(in srgb,var(--a) 55%,var(--a-ink))}
-.sub div:last-child{color:color-mix(in srgb,var(--b) 55%,var(--b-ink));padding-left:4px}
+.dayhead{position:sticky;top:0;z-index:6;background:var(--card);border-bottom:1px solid var(--line);text-align:center;padding:12px 4px 8px}
+.dhrow{display:flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--font)}
+.dow{font-size:12px;font-weight:500;color:var(--muted);letter-spacing:.2em}
+.dnum{font-size:24px;font-weight:400;color:var(--text2);min-width:38px;height:38px;line-height:38px;text-align:center;border-radius:50%}
+.today .dnum{background:var(--accent);color:var(--card);font-size:20px}
+.today .dow{color:var(--accent)}
+.sub{display:flex;margin-top:6px}
+.sub div{flex:1;text-align:center;overflow:hidden;white-space:nowrap}
+.sub div span{display:inline-block;font-size:11px;font-weight:500;padding:1px 8px;border-radius:999px}
+.sub div:first-child span{background:var(--a-bg);color:var(--a-ink)}
+.sub div:last-child span{background:var(--b-bg);color:var(--b-ink)}
 .gutter{position:sticky;left:0;z-index:5;background:var(--card)}
 .hourlabel{height:var(--hour);font-size:11px;color:var(--muted);text-align:right;padding-right:10px;position:relative;top:-7px;font-family:var(--font)}
 .daycol{position:relative;border-left:1px solid var(--line);height:calc(var(--hour) * 24);
@@ -318,13 +319,6 @@ html.theme-anim #modeBtn .orbit{transition:transform .9s cubic-bezier(.55,0,.25,
   .range{font-size:15px;margin-left:6px}
   #wrap{margin:4px 8px 8px;border-radius:16px}
   #cal{min-width:0 !important}
-  .dayhead{padding:10px 4px 6px;text-align:center}
-  .dhrow{justify-content:center;gap:4px}
-  .dow{font-size:13px;letter-spacing:.04em}
-  .dnum{font-size:15px;min-width:24px;height:24px;line-height:24px}
-  .today .dnum{font-size:13px}
-  .sub{font-size:13px;text-align:center}
-  .sub div:last-child{padding-left:0}
   .hourlabel{font-size:10px;padding-right:6px}
   .ev{padding:4px 5px;border-radius:8px}
   .ev .av{display:none}
@@ -369,7 +363,7 @@ html.theme-anim #modeBtn .orbit{transition:transform .9s cubic-bezier(.55,0,.25,
   <div class="inputrow">
     <button id="toggleChat">聊天 ▴</button>
     <button id="micBtn" title="按一下开始说话，再按一下停止" style="display:none"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg></button>
-    <textarea id="input" rows="1" placeholder="今天有什么新的安排"></textarea>
+    <textarea id="input" rows="1" placeholder="今天有什么新的安排…"></textarea>
     <button id="send">发送</button>
   </div>
 </div>
@@ -683,7 +677,7 @@ function render() {
   const days = [...Array(range.days)].map((_, i) => addDays(range.start, i));
   days.forEach((d, i) => {
     const h = el('div', 'dayhead' + (ymd(d) === todayStr ? ' today' : ''));
-    h.innerHTML = `<div class="dhrow"><span class="dow">${dowOf(ymd(d))}</span><span class="dnum">${d.getDate()}</span></div><div class="sub"><div>${esc(initial('a'))}</div><div>${esc(initial('b'))}</div></div>`;
+    h.innerHTML = `<div class="dhrow"><span class="dow">${dowOf(ymd(d))}</span><span class="dnum">${d.getDate()}</span></div><div class="sub"><div><span>${esc(initial('a'))}</span></div><div><span>${esc(initial('b'))}</span></div></div>`;
     cal.append(h);
   });
 
@@ -1391,7 +1385,7 @@ $('#zoomOut').onclick = () => applyZoom(zoom / 1.25);
 })();
 
 /* ================= voice input (browser speech recognition) ================= */
-const defaultPh = () => window.innerWidth <= 700 ? '有什么新安排？' : '今天有什么新的安排';
+const defaultPh = () => window.innerWidth <= 700 ? '有什么新安排…' : '今天有什么新的安排…';
 input.placeholder = defaultPh();
 let rec = null, vBase = '', vFinal = '', vPartial = '', stopByUser = false;
 function showVoice() { input.value = (vBase + vFinal + vPartial).replace(/^\s+/, ''); autosize(); }
