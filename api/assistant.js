@@ -1,11 +1,11 @@
 // POST /api/assistant {c, text, me, today, time}  -> { reply, actions }
 // The prompt is built here on the server, so the API key can only be used for this calendar's assistant.
-import { send, body, store, requireCalendar, toClientEvent, toClientMsg, isDate, isTime, clip,
+import { send, body, query, store, requireCalendar, toClientEvent, toClientMsg, isDate, isTime, clip,
   pickProvider, callModel, parseModelJson, buildPrompt, bumpSiteUsage } from './_lib.js';
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
-    const p = pickProvider(req.headers['x-vercel-ip-country']);
+    const p = pickProvider(req.headers['x-vercel-ip-country'], query(req).c);
     return send(res, 200, { available: !!p });
   }
   if (req.method !== 'POST') return send(res, 405, { error: 'method not allowed' });
@@ -15,7 +15,7 @@ export default async function handler(req, res) {
     const text = clip(b.text, 500).trim();
     if (!text || !['a', 'b'].includes(b.me) || !isDate(b.today) || !isTime(b.time)) return send(res, 400, { error: 'bad request' });
 
-    const provider = pickProvider(req.headers['x-vercel-ip-country']);
+    const provider = pickProvider(req.headers['x-vercel-ip-country'], cal.id);
     if (!provider) return send(res, 200, { reply: '小助手在你这里暂时用不了～可以点日历空白处或右下角 + 手动添加。', actions: [], unavailable: true });
 
     // Spending guards. The day is taken from the server clock, so nobody can reset a limit by changing their date.

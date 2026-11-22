@@ -63,6 +63,7 @@ A shared weekly calendar for two people, with a chat assistant that turns plain 
   - 如果你另外配置了一个兼容 OpenAI 接口的国内模型（`LLM_BASE_URL` / `LLM_API_KEY` / `LLM_MODEL`，比如 DeepSeek、通义千问、Kimi），这些地区的用户会改用这个模型。
   - 如果没有配置，这些地区的用户看不到小助手，但仍然可以手动添加日程。
   - 只配置国内模型、不填 `ANTHROPIC_API_KEY` 也可以，所有人都会用国内模型。
+  - 两个都配置，再加上 `CLAUDE_CALENDARS`（填日历链接里 `?c=` 后面那串，多个用逗号隔开），就只有这些日历用 Claude，其他所有日历都用国内模型。适合把 Claude 留给自己、公开分享时让大家用更便宜的模型。
 
 ---
 

@@ -118,12 +118,16 @@ export async function requireCalendar(res, cid) {
 /* ---------------- assistant ---------------- */
 const BLOCKED_FOR_CLAUDE = new Set(['CN', 'HK', 'MO', 'RU', 'KP', 'IR', 'SY', 'CU', 'BY']);
 
-// Pick which model answers, based on configuration and the visitor's country.
-export function pickProvider(country) {
+// Pick which model answers, based on configuration, the calendar and the visitor's country.
+// CLAUDE_CALENDARS (optional): comma-separated calendar ids that get Claude; every other calendar uses the
+// OpenAI-compatible model (e.g. DeepSeek). Leave it empty and everyone gets Claude where it is offered.
+export function pickProvider(country, calId) {
   const hasClaude = !!process.env.ANTHROPIC_API_KEY;
   const hasCompat = !!(process.env.LLM_API_KEY && process.env.LLM_BASE_URL && process.env.LLM_MODEL);
   const c = String(country || '').toUpperCase();
   if (BLOCKED_FOR_CLAUDE.has(c)) return hasCompat ? 'compat' : null; // Claude is not offered in these regions
+  const only = String(process.env.CLAUDE_CALENDARS || '').split(/[\s,]+/).filter(Boolean);
+  if (hasClaude && only.length && !only.includes(String(calId || ''))) return hasCompat ? 'compat' : null;
   if (hasClaude) return 'claude';
   if (hasCompat) return 'compat';
   return null;
@@ -145,7 +149,9 @@ export async function callModel(provider, prompt) {
     const r = await fetch(`${base}/chat/completions`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${process.env.LLM_API_KEY}`, 'content-type': 'application/json' },
-      body: JSON.stringify({ model: process.env.LLM_MODEL, messages: [{ role: 'user', content: prompt }], temperature: 0.2 }),
+      body: JSON.stringify({ model: process.env.LLM_MODEL, messages: [{ role: 'user', content: prompt }], temperature: 0.2,
+        // DeepSeek thinks before answering by default; a calendar edit doesn't need it and is faster and cheaper without
+        ...(/deepseek\.com/.test(base) ? { thinking: { type: 'disabled' } } : {}) }),
     });
     const j = await r.json();
     if (!r.ok) throw new Error(`LLM ${r.status}: ${j?.error?.message || ''}`);

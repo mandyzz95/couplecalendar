@@ -1557,7 +1557,7 @@ function showLanding() {
   setInterval(refresh, 6000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
   window.addEventListener('focus', refresh);
-  try { assistantOn = !!(await api('assistant')).available; } catch (e) { assistantOn = false; }
+  try { assistantOn = !!(await api('assistant?c=' + encodeURIComponent(CAL || ''))).available; } catch (e) { assistantOn = false; }
   if (!assistantOn) {
     input.placeholder = '小助手暂不可用，点日历添加';
     input.disabled = true; $('#send').disabled = true; $('#micBtn').style.display = 'none';
