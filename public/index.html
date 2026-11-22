@@ -266,6 +266,8 @@ header{padding:16px 22px 10px}
 .whopick button{flex:1;border:2px solid var(--border);background:var(--card);border-radius:12px;padding:9px 4px;font-size:13px}
 .whopick button.on{border-color:var(--c);background:color-mix(in srgb,var(--c) 18%,var(--card));font-weight:400}
 .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+.zoom{display:inline-flex;border:1px solid var(--border);border-radius:999px;background:var(--card);overflow:hidden}
+.zoom .icon-btn{border-radius:0;width:34px;height:30px;font-size:18px}
 .btn.primary{background:var(--accent);color:var(--card);border-color:var(--accent)}
 .btn.primary:hover{filter:brightness(.96);background:var(--accent)}
 .btn.danger{color:var(--del,var(--danger));margin-right:auto}
@@ -311,10 +313,10 @@ html.theme-anim #modeBtn .orbit{transition:transform .9s cubic-bezier(.55,0,.25,
   .modal{position:relative}
   .overlay.show .modal{transform:translateY(var(--drag,0px))}
   .overlay.dragging .modal{transition:none}
-  #whoOverlay{align-items:center;padding:20px}
-  #whoOverlay .modal{border-radius:22px;padding:22px 22px 20px;transform:scale(.7);opacity:0;transition:transform .32s cubic-bezier(.2,.9,.25,1.12),opacity .2s ease}
-  #whoOverlay .modal::before{display:none}
-  #whoOverlay.show .modal{transform:none;opacity:1}
+  #whoOverlay,#newOverlay{align-items:center;padding:20px}
+  #whoOverlay .modal,#newOverlay .modal{border-radius:22px;padding:22px 22px 20px;transform:scale(.7);opacity:0;transition:transform .32s cubic-bezier(.2,.9,.25,1.12),opacity .2s ease}
+  #whoOverlay .modal::before,#newOverlay .modal::before{display:none}
+  #whoOverlay.show .modal,#newOverlay.show .modal{transform:none;opacity:1}
   #pop.show{animation:sheetUp .32s cubic-bezier(.2,.9,.25,1)}
   #pop.closing{animation:sheetDown .2s ease-in forwards}
   :root{--hour:54px;--gutter:42px}
@@ -328,7 +330,10 @@ html.theme-anim #modeBtn .orbit{transition:transform .9s cubic-bezier(.55,0,.25,
   .break{display:block;order:2;flex-basis:100%;height:0}
   #todayBtn,#prevBtn,#nextBtn,.range{order:3}
   #todayBtn{padding:4px 14px;font-size:13px}
-  .range{font-size:15px;margin-left:6px}
+  .range{font-size:14px;margin-left:2px;letter-spacing:0}
+  #prevBtn,#nextBtn{width:30px}
+  .zoom{order:4;margin-left:auto}
+  .zoom .icon-btn{width:28px;height:28px;font-size:16px}
   #wrap{margin:4px 8px 8px;border-radius:16px}
   #cal{min-width:0 !important}
   .hourlabel{font-size:10px;padding-right:6px}
@@ -358,6 +363,7 @@ html.theme-anim #modeBtn .orbit{transition:transform .9s cubic-bezier(.55,0,.25,
     <button class="icon-btn" id="nextBtn" title="下一周">›</button>
     <div class="break"></div>
     <div class="range" id="range"></div>
+    <div class="zoom"><button class="icon-btn" id="zoomOut" title="缩小">−</button><button class="icon-btn" id="zoomIn" title="放大">+</button></div>
     <button class="chip" id="meChip"></button>
     <button class="icon-btn" id="modeBtn" title="白天 / 夜间"><span class="sky"><span class="orbit" id="orbit"><span class="sun"></span><span class="moon"></span></span></span></button>
     <button class="icon-btn" id="paletteBtn" title="配色"><svg width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" d="M12 3a9 9 0 1 0 0 18c1.1 0 1.8-.8 1.8-1.7 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-1 .8-1.8 1.8-1.8H17a4 4 0 0 0 4-4c0-4.4-4-8.1-9-8.1z"/><circle cx="7.4" cy="11.6" r="1.5" fill="var(--card)"/><circle cx="10.4" cy="7.4" r="1.5" fill="var(--card)"/><circle cx="15" cy="7.7" r="1.5" fill="var(--card)"/><circle cx="17.4" cy="11.4" r="1.3" fill="var(--card)"/></svg></button>
@@ -478,13 +484,13 @@ html.theme-anim #modeBtn .orbit{transition:transform .9s cubic-bezier(.55,0,.25,
   <div class="modal">
     <h3>创建你们的日历 ♥</h3>
     <div class="row">
-      <div class="field"><label>你的名字</label><input id="newA" maxlength="12" placeholder="比如：小瑄"></div>
-      <div class="field"><label>TA 的名字</label><input id="newB" maxlength="12" placeholder="比如：小瀚"></div>
+      <div class="field"><label>你的名字</label><input id="newA" maxlength="12" placeholder="比如：小美"></div>
+      <div class="field"><label>TA 的名字</label><input id="newB" maxlength="12" placeholder="比如：小帅"></div>
     </div>
     <div class="actions"><button class="btn primary" id="newGo" style="width:100%">创建</button></div>
-    <div class="note">创建好以后，在右上角 ⚙ 里复制专属链接发给 TA，两个人就能一起用啦。</div>
-    <div class="field" style="margin-top:16px;border-top:1px solid var(--line);padding-top:14px"><label>已经有日历了？粘贴专属链接进入</label>
-      <div style="display:flex;gap:8px"><input id="openLink" placeholder="https://…/?c=…"><button class="btn" id="openGo" type="button">进入</button></div>
+    <div class="note">创建好以后，在右上角的设置里复制专属链接发给 TA，两个人就能一起用啦。</div>
+    <div class="field" style="margin-top:16px;border-top:1px solid var(--line);padding-top:14px"><label>已经有日历了？</label>
+      <div style="display:flex;gap:8px"><input id="openLink" placeholder="https://…/?c=…"><button class="btn primary" id="openGo" type="button" style="white-space:nowrap;flex:none">进入</button></div>
     </div>
   </div>
 </div>
@@ -777,8 +783,12 @@ function render() {
       col.append(nl);
     }
 
+    // empty space: a single tap does nothing, a double tap/click starts a new event there
     col.addEventListener('click', ev => {
       if (justDragged) return;
+      const now = Date.now(), prev = lastTap; lastTap = { t: now, x: ev.clientX, y: ev.clientY, col };
+      if (!(prev && prev.col === col && now - prev.t < 400 && Math.abs(prev.x - ev.clientX) < 30 && Math.abs(prev.y - ev.clientY) < 30)) return;
+      lastTap = null;
       const r = col.getBoundingClientRect();
       const min = Math.floor(((ev.clientY - r.top) / curHour() * 60) / 30) * 30;
       const who = (ev.clientX - r.left) < r.width / 2 ? 'a' : 'b';
@@ -815,6 +825,7 @@ function fitEvents() {
   });
 }
 
+let lastTap = null;
 const shortT = t => { const [h, m] = String(t).split(':'); return +m ? `${+h}:${m}` : `${+h}`; };
 function numDays() { const w = window.innerWidth; return w >= 760 ? 7 : w >= 560 ? 5 : w >= 330 ? 3 : 2; }
 function startFor(d) { if (numDays() === 7) return mondayOf(d); const x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); return x; }
@@ -829,8 +840,9 @@ function scrollToDate(d, smooth = true) {
 function updateRangeLabel() {
   const N = numDays(), ws = state.weekStart, we = addDays(ws, N - 1);
   $('#range').textContent = ws.getMonth() === we.getMonth()
-    ? (N === 7 ? `${ws.getFullYear()}年` : '') + `${ws.getMonth() + 1}月${ws.getDate()}–${we.getDate()}日`
-    : `${ws.getMonth() + 1}月${ws.getDate()}日 – ${we.getMonth() + 1}月${we.getDate()}日`;
+    ? `${ws.getFullYear()}年${ws.getMonth() + 1}月${ws.getDate()}–${we.getDate()}日`
+    : N === 7 ? `${ws.getFullYear()}年${ws.getMonth() + 1}月${ws.getDate()}日 – ${we.getFullYear() !== ws.getFullYear() ? we.getFullYear() + '年' : ''}${we.getMonth() + 1}月${we.getDate()}日`
+    : `${ws.getFullYear()}年${ws.getMonth() + 1}月${ws.getDate()}–${we.getMonth() + 1}月${we.getDate()}日`;   // phone: keep it on one line
 }
 let hsRaf = 0, extendTimer = 0, smoothUntil = 0;
 $('#scroller').addEventListener('scroll', () => {
@@ -1401,6 +1413,8 @@ function applyZoom(z, anchorY) {
   applyZoom.t = setTimeout(() => { ls.set('cc_zoom', String(zoom)); document.querySelectorAll('.ev').forEach(n => n.classList.toggle('short', n.offsetHeight < 34)); fitEvents(); }, 150);
 }
 document.documentElement.style.setProperty('--hour', baseHour() * zoom + 'px');
+$('#zoomIn').onclick = () => applyZoom(zoom * 1.25);
+$('#zoomOut').onclick = () => applyZoom(zoom / 1.25);
 window.addEventListener('resize', () => document.documentElement.style.setProperty('--hour', baseHour() * zoom + 'px'));
 (() => {
   const sc = $('#scroller');
@@ -1475,7 +1489,7 @@ function showLanding() {
   $('#openGo').onclick = () => {
     const v = $('#openLink').value.trim();
     const m = v.match(/[?&]c=([A-Za-z0-9_-]{16,48})/) || v.match(/^([A-Za-z0-9_-]{16,48})$/);
-    if (!m) { toast('这个链接里找不到日历编号，要用 ⚙ 里复制的专属链接哦'); return; }
+    if (!m) { toast('这个链接里找不到日历编号，要用右上角设置里复制的专属链接哦'); return; }
     ls.set('cc_last', m[1]);
     location.href = location.pathname + '?c=' + m[1];
   };
@@ -1504,7 +1518,7 @@ function showLanding() {
     toast('暂时连不上，稍后会自动重试');
   }
   if (!state.me) openWho();
-  if (location.hash === '#new') { history.replaceState(null, '', location.pathname + location.search); setTimeout(() => toast('创建好啦！点右上角 ⚙ 复制链接发给 TA 💌'), 600); }
+  if (location.hash === '#new') { history.replaceState(null, '', location.pathname + location.search); setTimeout(() => toast('创建好啦！在右上角设置里复制链接发给 TA 💌'), 600); }
   await refresh();
   document.querySelectorAll('.skel').forEach(n => n.classList.add('out'));
   await new Promise(r => setTimeout(r, 220));
