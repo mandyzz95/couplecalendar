@@ -80,11 +80,21 @@ header{padding:16px 22px 10px}
 .ev{position:absolute;border-radius:10px;padding:5px 8px;font-size:12px;line-height:1.3;overflow:hidden;cursor:pointer;
   border:1.5px solid var(--card);transition:transform .12s, box-shadow .12s}
 .ev:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(100,80,60,.12)}
-.ev .t{font-weight:400;letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:16px}
-.ev .tm{opacity:.75;font-size:11px;white-space:nowrap}
+/* one thing per line: title, then time, then place. Titles never get "…" — they break only at spaces (econ课 stays whole) and are simply cut at the edge */
+.ev .t{font-weight:400;letter-spacing:.06em;white-space:normal;word-break:keep-all;overflow-wrap:normal;overflow:hidden;max-height:2.6em;padding-right:16px}
+.ev .tm{opacity:.75;font-size:11px;white-space:nowrap;overflow:hidden}
 .ev .av{position:absolute;top:5px;right:5px;width:16px;height:16px;border-radius:50%;color:var(--card);font-size:9px;display:flex;align-items:center;justify-content:center;font-family:var(--font)}
 .ev.short{display:flex;gap:5px;align-items:center;padding-top:2px}
 .ev.short .av{top:50%;transform:translateY(-50%)}
+/* when space is tight the title wins: time gives way first, the little name badge goes (the colour already says whose it is) */
+.ev.short{flex-wrap:wrap;align-content:flex-start;row-gap:30px}
+.ev.short .t{flex:0 1 auto;min-width:0;max-width:100%}
+.ev.short .tm{flex:none}
+.ev.short .t{white-space:nowrap;max-height:none}
+/* no name badge on events — the colour already says whose it is, and the title gets the whole width */
+.ev .av{display:none}
+.ev .t{padding-right:0}
+.ev.narrow:not(.short) .tm{white-space:normal}
 .ev.a{background:var(--a-bg);color:var(--a-ink);z-index:2}.ev.a .av{background:var(--a)}
 .ev.b{background:var(--b-bg);color:var(--b-ink);z-index:2}.ev.b .av{background:var(--b)}
 .ev.both{background:var(--both-bg);color:var(--both-ink);z-index:1}.ev.both .av{background:var(--both)}
@@ -323,11 +333,9 @@ html.theme-anim #modeBtn .orbit{transition:transform .9s cubic-bezier(.55,0,.25,
   #cal{min-width:0 !important}
   .hourlabel{font-size:10px;padding-right:6px}
   .ev{padding:4px 5px;border-radius:8px}
-  .ev .av{display:none}
-  .ev .t{padding-right:0;white-space:normal;word-break:break-all;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;font-size:12px;letter-spacing:.02em}
+  .ev .t{font-size:12px;letter-spacing:.02em}
   .ev .tm{font-size:10px;letter-spacing:0;white-space:normal}
   .ev.short .tm{display:none}
-  .ev.short .t{-webkit-line-clamp:1;word-break:normal;white-space:nowrap;text-overflow:ellipsis;display:block}
   .pt .lb{font-size:11px;letter-spacing:.02em;left:4px;padding:1px 3px;white-space:normal;line-height:1.15;max-width:calc(100% - 4px);word-break:normal;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
   #fab{width:48px;height:48px;right:14px;bottom:14px}
   #dock{margin:0 8px 8px;border-radius:18px}
@@ -709,7 +717,7 @@ function render() {
       if (firstAppear) { node.classList.add('appear'); node.style.animationDelay = (Math.max(0, Math.min(8, diffDays(d, state.weekStart))) * 45 + 120) + 'ms'; }
       node.style.top = `calc(var(--hour) * ${s / 60})`;
       node.style.left = `calc(${rl}% + 3px)`; node.style.width = `calc(${rw}% - 6px)`;
-      node.innerHTML = `<div class="ln"></div><div class="dot"></div><div class="lb">${N === 7 ? `${e.start.replace(/^0/, '')} ${esc(e.title)}` : `${esc(e.title)} <span style="white-space:nowrap">${e.start.replace(/^0/, '')}</span>`}</div>`;
+      node.innerHTML = `<div class="ln"></div><div class="dot"></div><div class="lb">${N === 7 && colW * rw / 100 < 110 ? esc(e.title) : N === 7 ? `${e.start.replace(/^0/, '')} ${esc(e.title)}` : `${esc(e.title)} <span style="white-space:nowrap">${e.start.replace(/^0/, '')}</span>`}</div>`;
       node.title = `${e.title} ${e.start} · ${whoLabel(who)}`;
       node.addEventListener('click', ev => { ev.stopPropagation(); if (!justDragged) openPop(e, node); });
       node.addEventListener('dblclick', ev => { ev.stopPropagation(); closePop(); openEditor(e); });
@@ -737,12 +745,13 @@ function render() {
         node.style.left = `calc(${left}% + 2px)`;
         node.style.width = `calc(${w}% - 4px)`;
         if (hpx < 34) node.classList.add('short');
+        if (colW * w / 100 < 90) node.classList.add('narrow');
         node.dataset.id = e.id;
         if (state.freshIds.has(e.id)) node.classList.add('fresh');
         if (snapIds.has(e.id)) node.classList.add('snap');
         if (syncIds.has(e.id)) node.classList.add('synced');
         if (firstAppear) { node.classList.add('appear'); node.style.animationDelay = (Math.max(0, Math.min(8, diffDays(d, state.weekStart))) * 45 + e.s / 1440 * 220) + 'ms'; }
-        node.innerHTML = `<span class="av">${esc(initial(e.who))}</span><div class="t">${esc(e.title)}</div><div class="tm">${N === 7 ? `${e.start}–${e.end}` : `${shortT(e.start)}–${shortT(e.end)}`}</div>${e.location && hpx >= 52 ? `<div class="loc">${PIN}${esc(e.location)}</div>` : ''}`;
+        node.innerHTML = `<div class="t"><span class="av">${esc(initial(e.who))}</span><span class="tt">${esc(e.title)}</span></div><div class="tm">${N === 7 && colW * w / 100 >= 90 ? `${e.start}–${e.end}` : `${shortT(e.start)}–${shortT(e.end)}`}</div>${e.location && hpx >= 52 ? `<div class="loc">${PIN}${esc(e.location)}</div>` : ''}`;
         node.title = `${e.title}\n${e.start}–${e.end} · ${whoLabel(e.who)}`;
         node.addEventListener('click', ev => { ev.stopPropagation(); if (!justDragged) openPop(e, node); });
         node.addEventListener('dblclick', ev => { ev.stopPropagation(); closePop(); openEditor(e); });
@@ -788,6 +797,22 @@ function render() {
   sc.scrollLeft = idx0 * colW;
   sc.scrollTop = firstRender ? 7 * H - 8 : keepTop; firstRender = false;
   requestAnimationFrame(() => { programmatic = false; });
+  fitEvents();
+}
+// a time or place that would be cut off is hidden rather than shown half — the title always comes first
+function fitEvents() {
+  document.querySelectorAll('#cal .ev').forEach(n => {
+    const t = n.querySelector('.t'), tt = n.querySelector('.tt');
+    if (!t || !tt) return;
+    // title: drop whole characters from the end until it fits — never a half-cut letter, never "…"
+    if (tt.dataset.full === undefined) tt.dataset.full = tt.textContent;
+    const full = [...tt.dataset.full]; let k = full.length; tt.textContent = tt.dataset.full;
+    const over = () => t.scrollWidth > t.clientWidth + 1 || t.scrollHeight > t.clientHeight + 1;
+    while (k > 1 && over()) tt.textContent = full.slice(0, --k).join('').trimEnd();
+    const parts = n.querySelectorAll('.tm,.loc'); parts.forEach(x => x.style.visibility = '');
+    const H = n.clientHeight;
+    parts.forEach(x => { if (x.offsetTop + x.offsetHeight > H + 1 || (x.classList.contains('tm') && x.scrollWidth > x.clientWidth + 1)) x.style.visibility = 'hidden'; });
+  });
 }
 
 const shortT = t => { const [h, m] = String(t).split(':'); return +m ? `${+h}:${m}` : `${+h}`; };
@@ -1180,11 +1205,12 @@ function renderChat(typing) {
   if (state.chat.length || CAL) chatPrimed = true;
   box.scrollTop = box.scrollHeight;
 }
-function chatLabel(open) { return window.innerWidth <= 700 ? (open ? '▾' : '💬') : (open ? '聊天 ▾' : '聊天 ▴'); }
-function openDock(open = true) { $('#dock').classList.toggle('open', open); $('#toggleChat').textContent = chatLabel(open); ls.set('cc_dock', open ? '1' : '0'); setTimeout(() => { const b = $('#msgs'); b.scrollTop = b.scrollHeight; }, 220); }
+const CHAT_IC = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="display:block"><path d="M12 3.5c-5 0-9 3.4-9 7.6 0 2.4 1.3 4.5 3.3 5.9l-.8 3.2c-.1.4.3.7.7.5l3.7-2c.7.1 1.4.2 2.1.2 5 0 9-3.4 9-7.6S17 3.5 12 3.5z"/></svg>';
+function chatLabel(open) { return window.innerWidth <= 700 ? (open ? '▾' : CHAT_IC) : (open ? '聊天 ▾' : '聊天 ▴'); }
+function openDock(open = true) { $('#dock').classList.toggle('open', open); $('#toggleChat').innerHTML = chatLabel(open); ls.set('cc_dock', open ? '1' : '0'); setTimeout(() => { const b = $('#msgs'); b.scrollTop = b.scrollHeight; }, 220); }
 $('#toggleChat').onclick = () => openDock(!$('#dock').classList.contains('open'));
 if (ls.get('cc_dock') === '1') openDock(true);
-else $('#toggleChat').textContent = chatLabel(false);
+else $('#toggleChat').innerHTML = chatLabel(false);
 
 const input = $('#input');
 function autosize() { input.style.height = '40px'; input.style.height = Math.min(120, input.scrollHeight) + 'px'; }
@@ -1372,7 +1398,7 @@ function applyZoom(z, anchorY) {
   document.documentElement.style.setProperty('--hour', newH + 'px');
   sc.scrollTop = headH + minute / 60 * newH - y;
   clearTimeout(applyZoom.t);
-  applyZoom.t = setTimeout(() => { ls.set('cc_zoom', String(zoom)); document.querySelectorAll('.ev').forEach(n => n.classList.toggle('short', n.offsetHeight < 34)); }, 150);
+  applyZoom.t = setTimeout(() => { ls.set('cc_zoom', String(zoom)); document.querySelectorAll('.ev').forEach(n => n.classList.toggle('short', n.offsetHeight < 34)); fitEvents(); }, 150);
 }
 document.documentElement.style.setProperty('--hour', baseHour() * zoom + 'px');
 window.addEventListener('resize', () => document.documentElement.style.setProperty('--hour', baseHour() * zoom + 'px'));
@@ -1403,32 +1429,41 @@ function setupVoice() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) return;                           // e.g. Firefox: keep typing (or use the keyboard's mic)
   const mic = $('#micBtn'); mic.style.display = '';
+  let r = null, guard = 0, idle = 0;
+  // put the button back to normal no matter how the session ended (some phones never send "end" after a refusal)
+  const reset = (msg) => {
+    clearTimeout(guard); clearTimeout(idle);
+    if (r) { const old = r; r = null; rec = null; old.onresult = old.onerror = old.onend = old.onaudiostart = null; try { old.abort(); } catch (e) {} }
+    mic.classList.remove('on'); input.placeholder = defaultPh();
+    if (vPartial) { vFinal += vPartial; vPartial = ''; }
+    showVoice();
+    if (msg) toast(msg);
+  };
+  const quiet = () => { clearTimeout(idle); idle = setTimeout(() => { try { r && r.stop(); } catch (e) {} setTimeout(() => r && reset(), 1500); }, 8000); };
   mic.onclick = () => {
-    if (rec) { stopByUser = true; try { rec.stop(); } catch (e) {} return; }
-    try { rec = new SR(); } catch (e) { mic.style.display = 'none'; return; }
-    rec.lang = 'zh-CN'; rec.interimResults = true; rec.continuous = true;
+    if (r) { stopByUser = true; try { r.stop(); } catch (e) {} setTimeout(() => { if (r) { reset(); if (input.value.trim() && vFinal.trim()) send(); } }, 1500); return; }
+    try { r = rec = new SR(); } catch (e) { mic.style.display = 'none'; return; }
+    r.lang = 'zh-CN'; r.interimResults = true; r.continuous = true;
     vBase = input.value ? input.value + ' ' : ''; vFinal = ''; vPartial = ''; stopByUser = false;
-    rec.onresult = e => {
+    r.onaudiostart = () => { clearTimeout(guard); quiet(); };
+    r.onresult = e => {
       let interim = '';
       for (let i = e.resultIndex; i < e.results.length; i++) {
-        const r = e.results[i];
-        if (r.isFinal) vFinal += r[0].transcript; else interim += r[0].transcript;
+        const x = e.results[i];
+        if (x.isFinal) vFinal += x[0].transcript; else interim += x[0].transcript;
       }
-      vPartial = interim; showVoice();
+      vPartial = interim; showVoice(); quiet();
     };
-    rec.onerror = e => {
-      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') toast('没有麦克风权限，可以在浏览器设置里打开，或者继续打字～');
-      else if (e.error === 'no-speech') toast('没听到声音，再试一次？');
-      else if (e.error !== 'aborted') toast('语音没听清，再试一次？');
+    r.onerror = e => {
+      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') reset('没有麦克风权限，可以在浏览器设置里打开，或者继续打字～');
+      else if (e.error === 'no-speech') reset('没听到声音，再试一次？');
+      else if (e.error !== 'aborted') reset('语音没听清，再试一次？');
     };
-    rec.onend = () => {
-      rec = null; mic.classList.remove('on'); input.placeholder = defaultPh();
-      if (vPartial) { vFinal += vPartial; vPartial = ''; }
-      showVoice();
-      if (stopByUser && input.value.trim() && vFinal.trim()) send();
-    };
-    try { rec.start(); mic.classList.add('on'); input.placeholder = '在听呢，说完再按一下 🎙'; }
-    catch (e) { rec = null; toast('麦克风打不开，可以继续打字～'); }
+    r.onend = () => { reset(); if (stopByUser && input.value.trim() && vFinal.trim()) send(); };
+    try { r.start(); mic.classList.add('on'); input.placeholder = '在听呢，说完再按一下 🎙'; }
+    catch (e) { reset('麦克风打不开，可以继续打字～'); return; }
+    // the microphone never actually opened (permission refused / blocked) → give up quietly after a few seconds
+    guard = setTimeout(() => reset('麦克风没打开，可以在浏览器设置里允许，或者继续打字～'), 5000);
   };
 }
 
