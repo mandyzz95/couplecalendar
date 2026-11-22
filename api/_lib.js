@@ -54,7 +54,7 @@ const supabaseStore = {
   async insertEvents(rows) { return sb('events', { method: 'POST', body: rows, prefer: 'return=representation' }); },
   async updateEvent(cid, id, f) { await sb(`events?calendar_id=eq.${enc(cid)}&id=eq.${enc(id)}`, { method: 'PATCH', body: f }); },
   async deleteEvent(cid, id) { await sb(`events?calendar_id=eq.${enc(cid)}&id=eq.${enc(id)}`, { method: 'DELETE' }); },
-  async deleteSeries(cid, sid) { await sb(`events?calendar_id=eq.${enc(cid)}&series_id=eq.${enc(sid)}`, { method: 'DELETE' }); },
+  async deleteSeries(cid, sid, from) { await sb(`events?calendar_id=eq.${enc(cid)}&series_id=eq.${enc(sid)}${from ? `&date=gte.${from}` : ''}`, { method: 'DELETE' }); },
   async listMessages(cid, limit) { const r = await sb(`messages?calendar_id=eq.${enc(cid)}&select=*&order=ts.desc&limit=${limit}`); return r.reverse(); },
   async insertMessage(row) { const r = await sb('messages', { method: 'POST', body: row, prefer: 'return=representation' }); return r[0]; },
   async bumpUsage(cid, day) {
@@ -77,7 +77,7 @@ const fileStore = {
   async insertEvents(rows) { const d = load(); const out = rows.map(r => ({ id: randomUUID(), created_at: new Date().toISOString(), ...r })); d.events.push(...out); save(d); return out; },
   async updateEvent(cid, id, f) { const d = load(); const e = d.events.find(x => x.calendar_id === cid && x.id === id); if (e) Object.assign(e, f); save(d); },
   async deleteEvent(cid, id) { const d = load(); d.events = d.events.filter(x => !(x.calendar_id === cid && x.id === id)); save(d); },
-  async deleteSeries(cid, sid) { const d = load(); d.events = d.events.filter(x => !(x.calendar_id === cid && x.series_id === sid)); save(d); },
+  async deleteSeries(cid, sid, from) { const d = load(); d.events = d.events.filter(x => !(x.calendar_id === cid && x.series_id === sid && (!from || x.date >= from))); save(d); },
   async listMessages(cid, limit) { return load().messages.filter(m => m.calendar_id === cid).sort((a, b) => a.ts - b.ts).slice(-limit); },
   async insertMessage(row) { const d = load(); const r = { id: randomUUID(), ...row }; d.messages.push(r); save(d); return r; },
   async bumpUsage(cid, day) { const d = load(); let u = d.ai_usage.find(x => x.calendar_id === cid && x.day === day); if (!u) { u = { calendar_id: cid, day, count: 0 }; d.ai_usage.push(u); } u.count++; save(d); return u.count; },
@@ -220,6 +220,7 @@ ${table}
 - op="update"：修改已有日程，用下面列表里的 id，只写要改的字段。
 - op="delete"：删除，用 id。
 - op="delete_series"：删除整个重复系列，字段 series 用列表里的 series 值（例如“digital humanities 不上了”“取消以后所有的…课”）。
+- delete_series 可加 from="YYYY-MM-DD"，只删这天及以后的（例如“下周开始不上了”）；不加 from 就是整个系列都删。
 - 修改重复系列（例如“DH 课改到10点开始”）：对该系列里今天及以后的每一条分别用 op="update"。
 - 也可以只回答问题（例如上周干了啥、某天谁有空、哪天我们俩都有空），这时 actions 为空数组。回答只依据下面的日程数据，不要编造。
 - 信息不够（比如没说哪天、要删的那条不确定是哪个）时不要乱猜，actions 为空，在 reply 里简短地问清楚。

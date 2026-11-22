@@ -64,8 +64,8 @@ header{padding:16px 22px 10px}
 .dayhead{position:sticky;top:0;z-index:6;background:var(--card);border-bottom:1px solid var(--line);text-align:center;padding:12px 4px 8px}
 .dhrow{display:flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--font)}
 .dow{font-size:12px;font-weight:500;color:var(--muted);letter-spacing:.2em}
-.dnum{font-size:24px;font-weight:400;color:var(--text2);min-width:38px;height:38px;line-height:38px;text-align:center;border-radius:50%}
-.today .dnum{background:var(--accent);color:var(--card);font-size:20px}
+.dnum{font-size:21px;font-weight:400;color:var(--text2);min-width:34px;height:34px;line-height:34px;text-align:center;border-radius:50%}
+.today .dnum{background:var(--accent);color:var(--card);font-size:18px}
 .today .dow{color:var(--accent)}
 .sub{display:flex;margin-top:6px}
 .sub div{flex:1;text-align:center;overflow:hidden;white-space:nowrap}
@@ -94,6 +94,7 @@ header{padding:16px 22px 10px}
 .pt .ln{position:absolute;left:0;right:0;top:-1px;height:2px;border-radius:2px;background:var(--pc)}
 .pt .dot{position:absolute;left:-1px;top:-5px;width:10px;height:10px;border-radius:50%;background:var(--pc);border:2px solid var(--card)}
 .pt .lb{position:absolute;left:8px;bottom:3px;font-size:11px;color:var(--pi);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:calc(100% - 14px);font-weight:500;letter-spacing:.06em;background:var(--lbbg);padding:0 4px;border-radius:4px}
+.pt.below .lb{bottom:auto;top:4px}
 .pt:hover .ln{height:3px}
 .pt.a{--pc:var(--a);--pi:var(--a-ink)}.pt.b{--pc:var(--b);--pi:var(--b-ink)}.pt.both{--pc:var(--both);--pi:color-mix(in srgb,var(--both) 55%,var(--text))}
 .ptcheck{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);margin:-2px 0 12px;cursor:pointer}
@@ -134,8 +135,11 @@ header{padding:16px 22px 10px}
 .pop-people{display:flex;flex-direction:column;gap:6px}
 .pop-person{display:flex;align-items:center;gap:8px;font-size:14px}
 .pop-person .avatar{width:26px;height:26px;font-size:12px}
-.pop-confirm{margin-top:16px;padding-top:12px;border-top:1px solid var(--line);display:none}
-.pop-confirm.show{display:block}
+.pop-confirm{display:grid;grid-template-rows:0fr;opacity:0;transform:translateY(-8px);transition:grid-template-rows .32s cubic-bezier(.3,.8,.3,1),opacity .25s ease,transform .32s cubic-bezier(.3,.8,.3,1)}
+.pop-confirm>.pc-in{min-height:0;overflow:hidden}
+.pop-confirm>.pc-in>div:first-child{margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}
+.pop-confirm.show{grid-template-rows:1fr;opacity:1;transform:none}
+.pop-confirm.instant{transition:none}
 .pop-confirm .q{font-size:14px;margin-bottom:10px}
 .pop-confirm .btns{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
 .ev .loc{font-size:11px;opacity:.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -210,8 +214,8 @@ header{padding:16px 22px 10px}
 #msgs{max-height:0;overflow:auto;transition:max-height .35s cubic-bezier(.2,.9,.25,1),padding .35s ease;padding:0 16px;background:var(--soft)}
 #dock.open #msgs{max-height:calc(30vh - 64px);max-height:calc(30dvh - 64px);flex:1;min-height:0;padding:12px 16px 6px}
 .inputrow{flex:none}
-#micBtn{flex:none;width:40px;height:40px;border-radius:50%;border:none;background:var(--soft2);color:var(--text2);display:inline-flex;align-items:center;justify-content:center}
-#micBtn:hover{background:var(--soft2)}
+#micBtn{flex:none;width:40px;height:40px;border-radius:50%;border:none;background:var(--send);color:var(--card);display:inline-flex;align-items:center;justify-content:center}
+#micBtn:hover{filter:brightness(.96)}
 #micBtn.on{background:var(--accent);color:var(--card);animation:pulse 1.4s ease-in-out infinite}
 @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(201,139,122,.45)}50%{box-shadow:0 0 0 8px rgba(201,139,122,0)}}
 .msg{display:flex;flex-direction:column;align-items:flex-start;margin:8px 0}
@@ -227,7 +231,8 @@ header{padding:16px 22px 10px}
 .hints button{border:1px solid var(--border);background:var(--soft);border-radius:999px;padding:5px 12px;font-size:12px;color:var(--text2)}
 .hints button:hover{background:var(--soft2)}
 .inputrow{display:flex;gap:8px;padding:10px 12px;align-items:flex-end}
-#toggleChat{border:none;background:var(--soft2);border-radius:999px;height:40px;padding:0 14px;font-size:12px;color:var(--text2);white-space:nowrap}
+#toggleChat{border:none;background:var(--send);border-radius:999px;height:40px;padding:0 16px;font-weight:400;color:var(--card);white-space:nowrap}
+#toggleChat:hover,#send:hover:not(:disabled){filter:brightness(.96)}
 #input{font-weight:300;letter-spacing:.04em;flex:1;resize:none;border:1px solid var(--border);border-radius:20px;padding:9px 16px;font:inherit;line-height:20px;height:40px;max-height:120px;background:var(--soft);outline:none;color:var(--text)}
 #input:focus{border-color:var(--sage);background:var(--card)}
 #send{background:var(--send);color:var(--card);border:none;border-radius:999px;height:40px;padding:0 20px;font-weight:400}
@@ -253,8 +258,8 @@ header{padding:16px 22px 10px}
 .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
 .btn.primary{background:var(--accent);color:var(--card);border-color:var(--accent)}
 .btn.primary:hover{filter:brightness(.96);background:var(--accent)}
-.btn.danger{color:var(--danger);margin-right:auto}
-.btn.danger.confirm{background:var(--danger);color:var(--card);border-color:var(--danger)}
+.btn.danger{color:var(--del,var(--danger));margin-right:auto}
+.btn.danger.confirm{background:var(--del,var(--danger));color:var(--card);border-color:var(--del,var(--danger))}
 .bigpick{display:flex;gap:12px;margin-top:6px}
 .bigpick button{flex:1;padding:20px 8px;border-radius:16px;border:none;color:var(--card);font-size:18px;font-weight:400;font-family:var(--font)}
 .note{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.6}
@@ -286,8 +291,6 @@ html.vt-theme::view-transition-new(root){animation:vtFadeIn .8s ease-in-out both
 html.theme-anim, html.theme-anim *, html.theme-anim *::before, html.theme-anim *::after{
   transition:background-color .8s ease,color .8s ease,border-color .8s ease,box-shadow .8s ease,fill .8s ease,stroke .8s ease !important}
 html.theme-anim #modeBtn .orbit{transition:transform .9s cubic-bezier(.55,0,.25,1) !important}
-.zoom{display:inline-flex;border:1px solid var(--border);border-radius:999px;background:var(--card);overflow:hidden}
-.zoom .icon-btn{border-radius:0;width:34px;height:30px;font-size:18px}
 #scroller{touch-action:pan-x pan-y}
 @media (max-width:1200px){ #clock{display:none} }
 @media (max-width:700px){
@@ -314,7 +317,6 @@ html.theme-anim #modeBtn .orbit{transition:transform .9s cubic-bezier(.55,0,.25,
   #meChip,#modeBtn,#paletteBtn,#settingsBtn{order:1}
   .break{display:block;order:2;flex-basis:100%;height:0}
   #todayBtn,#prevBtn,#nextBtn,.range{order:3}
-  .zoom{order:4;margin-left:auto}
   #todayBtn{padding:4px 14px;font-size:13px}
   .range{font-size:15px;margin-left:6px}
   #wrap{margin:4px 8px 8px;border-radius:16px}
@@ -348,7 +350,6 @@ html.theme-anim #modeBtn .orbit{transition:transform .9s cubic-bezier(.55,0,.25,
     <button class="icon-btn" id="nextBtn" title="下一周">›</button>
     <div class="break"></div>
     <div class="range" id="range"></div>
-    <div class="zoom"><button class="icon-btn" id="zoomOut" title="缩小">−</button><button class="icon-btn" id="zoomIn" title="放大">+</button></div>
     <button class="chip" id="meChip"></button>
     <button class="icon-btn" id="modeBtn" title="白天 / 夜间"><span class="sky"><span class="orbit" id="orbit"><span class="sun"></span><span class="moon"></span></span></span></button>
     <button class="icon-btn" id="paletteBtn" title="配色"><svg width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" d="M12 3a9 9 0 1 0 0 18c1.1 0 1.8-.8 1.8-1.7 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-1 .8-1.8 1.8-1.8H17a4 4 0 0 0 4-4c0-4.4-4-8.1-9-8.1z"/><circle cx="7.4" cy="11.6" r="1.5" fill="var(--card)"/><circle cx="10.4" cy="7.4" r="1.5" fill="var(--card)"/><circle cx="15" cy="7.7" r="1.5" fill="var(--card)"/><circle cx="17.4" cy="11.4" r="1.3" fill="var(--card)"/></svg></button>
@@ -383,7 +384,7 @@ html.theme-anim #modeBtn .orbit{transition:transform .9s cubic-bezier(.55,0,.25,
     <div class="field"><label>谁</label><div class="whopick" id="fWho"></div></div>
     <div class="actions">
       <button class="btn danger" id="delBtn">删除</button>
-      <button class="btn danger confirm" id="delSeriesBtn" style="display:none;margin-right:0">删除全部重复</button>
+      <button class="btn danger confirm" id="delSeriesBtn" style="display:none;margin-right:0">这次及以后</button>
       <button class="btn" id="cancelBtn">取消</button>
       <button class="btn primary" id="saveBtn">保存</button>
     </div>
@@ -403,10 +404,10 @@ html.theme-anim #modeBtn .orbit{transition:transform .9s cubic-bezier(.55,0,.25,
     <div class="pop-sub" id="popLoc" style="margin-top:0;color:var(--text)"></div></div>
   <div class="pop-row"><div class="pop-ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.8c1.8.7 3 2.5 3.5 5.2"/></svg></div>
     <div class="pop-people" id="popWho"></div></div>
-  <div class="pop-confirm" id="popConfirm">
+  <div class="pop-confirm" id="popConfirm"><div class="pc-in">
     <div class="q" id="popQ">删除这个日程？</div>
     <div class="btns" id="popBtns"></div>
-  </div>
+  </div></div>
 </div>
 
 <!-- palette -->
@@ -425,7 +426,7 @@ html.theme-anim #modeBtn .orbit{transition:transform .9s cubic-bezier(.55,0,.25,
         <label><input type="color" id="cPaper">背景</label>
       </div>
     </div>
-    <div class="actions"><button class="btn primary" id="palDone">好了</button></div>
+    <div class="actions"><button class="btn primary" id="palDone">完成</button></div>
   </div>
 </div>
 
@@ -606,10 +607,11 @@ async function deleteEvent(id) {
   state.events = state.events.filter(x => x.id !== id); render();
   await write(() => api('events', 'DELETE', { c: CAL, id }));
 }
-async function deleteSeries(seriesId) {
-  await leaveAnim(state.events.filter(x => x.seriesId === seriesId).map(x => `[data-id="${CSS.escape(x.id)}"]`).join(',') || '#none');
-  state.events = state.events.filter(x => x.seriesId !== seriesId); render();
-  await write(() => api('events', 'DELETE', { c: CAL, seriesId }));
+async function deleteSeries(seriesId, from) {             // from = 'YYYY-MM-DD' → only that date and later
+  const hit = x => x.seriesId === seriesId && (!from || x.date >= from);
+  await leaveAnim(state.events.filter(hit).map(x => `[data-id="${CSS.escape(x.id)}"]`).join(',') || '#none');
+  state.events = state.events.filter(x => !hit(x)); render();
+  await write(() => api('events', 'DELETE', from ? { c: CAL, seriesId, from } : { c: CAL, seriesId }));
 }
 async function addChat(m) {
   state.chat.push(m); renderChat();
@@ -698,6 +700,11 @@ function render() {
       const who = ['a', 'b', 'both'].includes(e.who) ? e.who : 'a';
       const [rl, rw] = { a: [0, 50], b: [50, 50], both: [0, 100] }[who];
       const node = el('div', `pt ${who}`); node.dataset.id = e.id;
+      // something sits just above the line in the same lane → put the label underneath instead
+      const win = 34 / H * 60, overlaps = w => w === who || w === 'both' || who === 'both';
+      if (dayAll.some(o => o !== e && overlaps(['a', 'b', 'both'].includes(o.who) ? o.who : 'a') && (o.kind === 'point'
+          ? toMin(o.start) < s && toMin(o.start) > s - win
+          : toMin(o.start) < s && Math.max(toMin(o.end), toMin(o.start) + 15) > s - win))) node.classList.add('below');
       if (state.freshIds.has(e.id)) node.classList.add('fresh');
       if (firstAppear) { node.classList.add('appear'); node.style.animationDelay = (Math.max(0, Math.min(8, diffDays(d, state.weekStart))) * 45 + 120) + 'ms'; }
       node.style.top = `calc(var(--hour) * ${s / 60})`;
@@ -893,6 +900,7 @@ function applyTheme() {
   Object.assign(t, { tool: t.dark ? mix(base.a, '#ffffff', 0.15) : mix(base.a, base.aInk, 0.3), accent: strong, sage: strong, now: strong,
     send: sender === 'b' ? deep(base.b, base.bInk) : deep(base.a, base.aInk),
     mine: sendMode === 'me' ? (sender === 'b' ? t.bBg : t.aBg) : t.mine });
+  root.setProperty('--a-deep', deep(base.a, base.aInk)); root.setProperty('--b-deep', deep(base.b, base.bInk)); root.setProperty('--both-deep', strong);
   root.setProperty('--lbbg', t.lbbg); root.colorScheme = t.dark ? 'dark' : 'light';
   setOrbit(!!t.dark);
   for (const k in VAR) if (t[k]) root.setProperty(VAR[k], t[k]);
@@ -995,7 +1003,7 @@ function openPop(e, node) {
   $('#popLoc').textContent = e.location || '';
   const person = w => `<div class="pop-person"><div class="avatar" style="background:${COLORS[w]}">${esc(initial(w))}</div>${esc(state.names[w])}</div>`;
   $('#popWho').innerHTML = e.who === 'both' ? person('a') + person('b') + '<div class="pop-sub" style="margin-top:0"><span class="heart beat">♥</span> 一起</div>' : person(e.who);
-  $('#popConfirm').classList.remove('show');
+  { const pc = $('#popConfirm'); pc.classList.add('instant'); pc.classList.remove('show'); void pc.offsetWidth; pc.classList.remove('instant'); }
   pop.classList.remove('closing'); pop.classList.remove('show'); void pop.offsetWidth; pop.classList.add('show');
   if (window.innerWidth > 700) {
     const r = node.getBoundingClientRect(), pw = pop.offsetWidth, ph = pop.offsetHeight, gap = 10;
@@ -1017,12 +1025,13 @@ $('#popEdit').onclick = () => { const e = popEv; closePop(); if (e) openEditor(e
 $('#popDel').onclick = () => {
   const e = popEv; if (!e) return;
   const box = $('#popBtns');
-  $('#popQ').textContent = e.seriesId ? '这是每周重复的日程，要删哪些？' : '删除这个日程？';
+  $('#pop').style.setProperty('--del', delColor(e.who));
+  $('#popQ').textContent = e.seriesId ? '重复日程，删哪些？' : '删除这个日程？';
   box.innerHTML = '';
   const mk = (label, cls, fn) => { const b = el('button', 'btn ' + cls); b.textContent = label; b.onclick = fn; box.append(b); };
   mk('取消', '', () => $('#popConfirm').classList.remove('show'));
   mk(e.seriesId ? '只删这次' : '删除', 'danger confirm', async () => { closePop(); try { await deleteEvent(e.id); } catch (err) { toast('删除失败：' + err.message); } });
-  if (e.seriesId) mk('删除全部重复', 'danger confirm', async () => { closePop(); try { await deleteSeries(e.seriesId); toast('整个重复系列已删除'); } catch (err) { toast('删除失败：' + err.message); } });
+  if (e.seriesId) mk('这次及以后', 'danger confirm', async () => { closePop(); try { await deleteSeries(e.seriesId, e.date); toast('这次及以后的都删掉了'); } catch (err) { toast('删除失败：' + err.message); } });
   box.querySelectorAll('.btn').forEach(b => b.style.marginRight = '0');
   $('#popConfirm').classList.add('show');
 };
@@ -1044,8 +1053,10 @@ function renderWhoPick() {
     box.append(b);
   });
 }
+const delColor = who => `var(--${['a', 'b', 'both'].includes(who) ? who : 'a'}-deep)`;   // delete buttons wear the event's own colour
 function openEditor(e) {
   editing = e; editWho = e.who || 'a'; delArmed = false;
+  $('#evOverlay').style.setProperty('--del', delColor(e.who));
   $('#evTitle').textContent = e.id ? '编辑日程' : '新日程';
   $('#fTitle').value = e.title || '';
   $('#fLoc').value = e.location || '';
@@ -1087,8 +1098,8 @@ $('#delBtn').onclick = async () => {
   try { await deleteEvent(id); } catch (err) { toast('删除失败：' + (err.message || err.code)); }
 };
 $('#delSeriesBtn').onclick = async () => {
-  const sid = editing && editing.seriesId; closeEditor(); if (!sid) return;
-  try { await deleteSeries(sid); toast('整个重复系列已删除'); }
+  const sid = editing && editing.seriesId, from = editing && editing.date; closeEditor(); if (!sid) return;
+  try { await deleteSeries(sid, from); toast('这次及以后的都删掉了'); }
   catch (err) { toast('删除失败：' + (err.message || err.code)); }
 };
 function flash(id) { if (!id) return; state.freshIds.add(id); render(); setTimeout(() => { state.freshIds.delete(id); }, 1500); }
@@ -1223,7 +1234,8 @@ async function applyActions(actions) {
       } else if (a.op === 'delete_series' && a.series) {
         const list = state.events.filter(e => e.seriesId === a.series);
         firstDate = firstDate || list[0]?.date;
-        if (list.length) await deleteSeries(a.series);
+        const from = /^\d{4}-\d{2}-\d{2}$/.test(a.from || '') ? a.from : undefined;
+        if (list.some(e => !from || e.date >= from)) await deleteSeries(a.series, from);
       } else if (a.op === 'delete' && a.id && state.events.some(e => e.id === a.id)) {
         firstDate = firstDate || state.events.find(e => e.id === a.id)?.date;
         await deleteEvent(a.id);
@@ -1364,8 +1376,6 @@ function applyZoom(z, anchorY) {
 }
 document.documentElement.style.setProperty('--hour', baseHour() * zoom + 'px');
 window.addEventListener('resize', () => document.documentElement.style.setProperty('--hour', baseHour() * zoom + 'px'));
-$('#zoomIn').onclick = () => applyZoom(zoom * 1.25);
-$('#zoomOut').onclick = () => applyZoom(zoom / 1.25);
 (() => {
   const sc = $('#scroller');
   // trackpad pinch / ctrl + wheel on computer

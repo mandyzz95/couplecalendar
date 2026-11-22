@@ -1,7 +1,7 @@
 // GET    /api/events?c=ID                      -> { events }
 // POST   /api/events {c, events:[...]}         -> { events }   (one or many, e.g. a repeating class)
 // PATCH  /api/events {c, id, fields}
-// DELETE /api/events {c, id} | {c, seriesId}
+// DELETE /api/events {c, id} | {c, seriesId, from?: 'YYYY-MM-DD' (this date and later only)}
 import { send, body, query, store, requireCalendar, toClientEvent, isDate, isTime, WHO, clip } from './_lib.js';
 
 function clean(e, partial) {
@@ -49,7 +49,7 @@ export default async function handler(req, res) {
       return send(res, 200, { ok: true });
     }
     if (req.method === 'DELETE') {
-      if (b.seriesId) await store.deleteSeries(cal.id, String(b.seriesId));
+      if (b.seriesId) await store.deleteSeries(cal.id, String(b.seriesId), /^\d{4}-\d{2}-\d{2}$/.test(b.from || '') ? b.from : null);
       else if (b.id) await store.deleteEvent(cal.id, String(b.id));
       else return send(res, 400, { error: 'missing id' });
       return send(res, 200, { ok: true });
