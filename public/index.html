@@ -266,7 +266,6 @@ header{padding:16px 22px 10px}
 /* the maker's signature (logo drawn in the page's muted colour, so it suits every theme) */
 .madeby{position:relative;display:flex;align-items:center;justify-content:center;margin-top:18px;color:var(--muted);text-decoration:none;opacity:.85}
 #newOverlay .madeby{margin-top:28px}
-.madeby:hover{opacity:1;color:var(--accent)}
 .madeby i{display:block;width:104px;height:13px;background:currentColor;-webkit-mask:url(/iamwenxuan-closed.png) center/contain no-repeat;mask:url(/iamwenxuan-closed.png) center/contain no-repeat}
 .madeby i.o{position:absolute;left:50%;top:0;margin-left:-52px;-webkit-mask-image:url(/iamwenxuan-open.png);mask-image:url(/iamwenxuan-open.png);opacity:0}
 /* every time the window opens: sleepy eyes… then awake, and they stay open */
@@ -487,7 +486,7 @@ html.theme-anim #modeBtn .orbit{transition:transform .9s cubic-bezier(.55,0,.25,
       <button class="btn" id="setCancel">取消</button>
       <button class="btn primary" id="setSave">保存</button>
     </div>
-    <a class="madeby" href="https://iamwenxuan.com" target="_blank" rel="noopener" aria-label="iamwenxuan"><i class="c"></i><i class="o"></i></a>
+    <div class="madeby" role="img" aria-label="iamwenxuan"><i class="c"></i><i class="o"></i></div>
   </div>
 </div>
 
@@ -513,7 +512,7 @@ html.theme-anim #modeBtn .orbit{transition:transform .9s cubic-bezier(.55,0,.25,
     <div class="field" style="margin-top:16px;border-top:1px solid var(--line);padding-top:14px"><label>已经有日历了？</label>
       <div style="display:flex;gap:8px"><input id="openLink" placeholder="https://…/?c=…"><button class="btn primary" id="openGo" type="button" style="white-space:nowrap;flex:none">进入</button></div>
     </div>
-    <a class="madeby" href="https://iamwenxuan.com" target="_blank" rel="noopener" aria-label="iamwenxuan"><i class="c"></i><i class="o"></i></a>
+    <div class="madeby" role="img" aria-label="iamwenxuan"><i class="c"></i><i class="o"></i></div>
   </div>
 </div>
 
