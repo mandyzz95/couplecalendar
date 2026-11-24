@@ -94,6 +94,8 @@ header{padding:16px 22px 10px}
 /* no name badge on events — the colour already says whose it is, and the title gets the whole width */
 .ev .av{display:none}
 .ev .t{padding-right:0}
+/* sitting on top of another event: a thin outline in the page colour so the two read as separate */
+.ev.ontop{box-shadow:0 0 0 1.5px var(--card),0 4px 12px rgba(0,0,0,.10)}
 .ev.narrow:not(.short) .tm{white-space:normal}
 .ev.a{background:var(--a-bg);color:var(--a-ink);z-index:2}.ev.a .av{background:var(--a)}
 .ev.b{background:var(--b-bg);color:var(--b-ink);z-index:2}.ev.b .av{background:var(--b)}
@@ -609,7 +611,13 @@ tickClock(); setInterval(tickClock, 15000);
 async function api(path, method = 'GET', data) {
   const opt = { method, headers: { 'Content-Type': 'application/json' } };
   if (data) opt.body = JSON.stringify(data);
-  const r = await fetch('/api/' + path, opt);
+  // never wait forever: a phone switching networks can leave a request hanging, which used to lock the chat
+  const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), path.startsWith('assistant') ? 45000 : 20000);
+  opt.signal = ctl.signal;
+  let r;
+  try { r = await fetch('/api/' + path, opt); }
+  catch (e) { const err = new Error(e.name === 'AbortError' ? '网络有点慢，再试一次？' : '网络断了一下，再试一次？'); throw err; }
+  finally { clearTimeout(tm); }
   const j = await r.json().catch(() => ({}));
   if (!r.ok) { const e = new Error(j.error || ('网络错误 ' + r.status)); e.status = r.status; throw e; }
   return j;
@@ -750,10 +758,29 @@ function render() {
     evs.forEach(e => (groups[e.who] || groups.a).push(e));
     Object.entries(groups).forEach(([w, l]) => l.forEach(e => mins[w] += e.e - e.s));
 
+    // overlaps between a "together" event and someone's own event (they share screen space), like Google Calendar:
+    // the later one sits on top with an outline (a wide "together" card moves aside a little);
+    // if they start within half an hour of each other they go side by side instead — me | together | TA
     const regions = { a: [0, 50], b: [50, 50], both: [0, 100] };
+    const crosses = (x, y) => x.who !== y.who && (x.who === 'both' || y.who === 'both') && x.s < y.e && y.s < x.e;
+    // cascade only works when one starts clearly later; starting within half an hour of each other → side by side (Google does the same)
+    const shareCol = (x, y) => crosses(x, y) && Math.abs(x.s - y.s) < 30;
+    const regionOf = e => {
+      if (!evs.some(o => shareCol(e, o))) return regions[e.who];
+      // which people are busy alongside this stretch (follow the chain of overlaps)
+      const seen = new Set([e]), todo = [e];
+      while (todo.length) { const x = todo.pop(); evs.forEach(o => { if (!seen.has(o) && (shareCol(x, o) || (o.who === x.who && o.s < x.e && x.s < o.e))) { seen.add(o); todo.push(o); } }); }
+      const has = w => [...seen].some(o => o.who === w);
+      if (has('a') && has('b')) return { a: [0, 100 / 3], both: [100 / 3, 100 / 3], b: [200 / 3, 100 / 3] }[e.who];
+      if (has('a')) return { a: [0, 50], both: [50, 50], b: [50, 50] }[e.who];
+      return { a: [0, 50], both: [0, 50], b: [50, 50] }[e.who];
+    };
     Object.entries(groups).forEach(([who, list]) => {
       layoutLanes(list).forEach(e => {
-        const [rl, rw] = regions[who];
+        let [rl, rw] = regionOf(e);
+        // cascade / see-through: is this one sitting on top of an earlier, overlapping event?
+        const onTop = evs.some(o => crosses(e, o) && !shareCol(e, o) && (o.s < e.s || (o.s === e.s && (o.e > e.e || (o.e === e.e && o.who === 'both')))));
+        if (onTop && who === 'both') { const nudge = Math.min(rw * 0.3, 18); rl += nudge; rw -= nudge; }   // only the wide 'together' card needs moving aside
         const w = rw / e.lanes, left = rl + e.lane * w;
         const node = el('div', `ev ${who}`);
         const hpx = Math.max((e.e - e.s) / 60 * H - 2, 18);
@@ -763,6 +790,7 @@ function render() {
         node.style.width = `calc(${w}% - 4px)`;
         if (hpx < 34) node.classList.add('short');
         if (colW * w / 100 < 90) node.classList.add('narrow');
+        if (onTop) { node.classList.add('ontop'); node.style.zIndex = 3; }
         node.dataset.id = e.id;
         if (state.freshIds.has(e.id)) node.classList.add('fresh');
         if (snapIds.has(e.id)) node.classList.add('snap');
@@ -1319,8 +1347,10 @@ async function applyActions(actions) {
   return fails;
 }
 
+let sendAfter = false;
 async function send() {
   const text = input.value.trim();
+  if (busy && text) { sendAfter = true; return; }          // still answering the last one: send this right after
   if (!text || busy || !assistantOn) return;
   if (!state.me) { openWho(); return; }
   busy = true; $('#send').disabled = true;
@@ -1342,6 +1372,7 @@ async function send() {
     toast('小助手出了点问题：' + (e && e.message || e));
   } finally {
     busy = false; $('#send').disabled = false; renderChat();
+    if (sendAfter) { sendAfter = false; if (input.value.trim()) setTimeout(send, 50); }
   }
 }
 
@@ -1474,6 +1505,9 @@ function setupVoice() {
   if (!SR) return;                           // e.g. Firefox: keep typing (or use the keyboard's mic)
   const mic = $('#micBtn'); mic.style.display = '';
   let r = null, guard = 0, idle = 0;
+  // iPhone/iPad Safari: "continuous" listening is unreliable there and can leave the recogniser unable to start again,
+  // so on those devices each press listens for one sentence and stops by itself
+  const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   // put the button back to normal no matter how the session ended (some phones never send "end" after a refusal)
   const reset = (msg) => {
     clearTimeout(guard); clearTimeout(idle);
@@ -1487,24 +1521,28 @@ function setupVoice() {
   mic.onclick = () => {
     if (r) { stopByUser = true; try { r.stop(); } catch (e) {} setTimeout(() => { if (r) { reset(); if (input.value.trim() && vFinal.trim()) send(); } }, 1500); return; }
     try { r = rec = new SR(); } catch (e) { mic.style.display = 'none'; return; }
-    r.lang = 'zh-CN'; r.interimResults = true; r.continuous = true;
+    r.lang = 'zh-CN'; r.interimResults = true; r.continuous = !isIOS;
     vBase = input.value ? input.value + ' ' : ''; vFinal = ''; vPartial = ''; stopByUser = false;
-    r.onaudiostart = () => { clearTimeout(guard); quiet(); };
+    // any sign of life means the microphone did open (some phones never send "audiostart")
+    r.onstart = r.onaudiostart = r.onspeechstart = () => { clearTimeout(guard); quiet(); };
     r.onresult = e => {
       let interim = '';
       for (let i = e.resultIndex; i < e.results.length; i++) {
         const x = e.results[i];
         if (x.isFinal) vFinal += x[0].transcript; else interim += x[0].transcript;
       }
-      vPartial = interim; showVoice(); quiet();
+      clearTimeout(guard); vPartial = interim; showVoice(); quiet();
     };
     r.onerror = e => {
       if (e.error === 'not-allowed' || e.error === 'service-not-allowed') reset('没有麦克风权限，可以在浏览器设置里打开，或者继续打字～');
       else if (e.error === 'no-speech') reset('没听到声音，再试一次？');
-      else if (e.error !== 'aborted') reset('语音没听清，再试一次？');
+      else if (e.error === 'aborted') reset();          // interrupted (another app, a call…): just get ready for the next press
+      else reset('语音没听清，再试一次？');
     };
     r.onend = () => { reset(); if (stopByUser && input.value.trim() && vFinal.trim()) send(); };
-    try { r.start(); mic.classList.add('on'); input.placeholder = '在听呢，说完再按一下 🎙'; }
+    // leaving the page / locking the phone mid-listen kills the session without telling us
+    document.addEventListener('visibilitychange', function off() { if (document.hidden && r) reset(); document.removeEventListener('visibilitychange', off); });
+    try { r.start(); mic.classList.add('on'); input.placeholder = isIOS ? '在听呢，说完会自动停 🎙' : '在听呢，说完再按一下 🎙'; }
     catch (e) { reset('麦克风打不开，可以继续打字～'); return; }
     // the microphone never actually opened (permission refused / blocked) → give up quietly after a few seconds
     guard = setTimeout(() => reset('麦克风没打开，可以在浏览器设置里允许，或者继续打字～'), 5000);
