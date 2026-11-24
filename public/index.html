@@ -263,6 +263,18 @@ header{padding:16px 22px 10px}
 .field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
 .field input,.field select{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:10px;font:inherit;background:var(--soft);color:var(--text)}
 .field input:focus,.field select:focus{outline:none;border-color:var(--accent);background:var(--card)}
+/* the maker's signature (logo drawn in the page's muted colour, so it suits every theme) */
+.madeby{position:relative;display:flex;align-items:center;justify-content:center;margin-top:18px;color:var(--muted);text-decoration:none;opacity:.85}
+#newOverlay .madeby{margin-top:28px}
+.madeby:hover{opacity:1;color:var(--accent)}
+.madeby i{display:block;width:104px;height:13px;background:currentColor;-webkit-mask:url(/iamwenxuan-closed.png) center/contain no-repeat;mask:url(/iamwenxuan-closed.png) center/contain no-repeat}
+.madeby i.o{position:absolute;left:50%;top:0;margin-left:-52px;-webkit-mask-image:url(/iamwenxuan-open.png);mask-image:url(/iamwenxuan-open.png);opacity:0}
+/* every time the window opens: sleepy eyes… then awake, and they stay open */
+.overlay.show .madeby i.o{animation:eyeOpen .28s ease .75s forwards}
+.overlay.show .madeby i.c{animation:eyeShut .28s ease .75s forwards}
+@keyframes eyeOpen{to{opacity:1}}
+@keyframes eyeShut{to{opacity:0}}
+@media (prefers-reduced-motion:reduce){.madeby i.o{opacity:1}.madeby i.c{opacity:0}}
 .row{display:flex;gap:10px}.row .field{flex:1;min-width:0}
 .namepair{display:flex;gap:6px;align-items:center}
 .field input.init{flex:none;width:40px;height:40px;padding:0;border-radius:50%;text-align:center;font-size:15px;border:none}
@@ -475,6 +487,7 @@ html.theme-anim #modeBtn .orbit{transition:transform .9s cubic-bezier(.55,0,.25,
       <button class="btn" id="setCancel">取消</button>
       <button class="btn primary" id="setSave">保存</button>
     </div>
+    <a class="madeby" href="https://iamwenxuan.com" target="_blank" rel="noopener" aria-label="iamwenxuan"><i class="c"></i><i class="o"></i></a>
   </div>
 </div>
 
@@ -500,6 +513,7 @@ html.theme-anim #modeBtn .orbit{transition:transform .9s cubic-bezier(.55,0,.25,
     <div class="field" style="margin-top:16px;border-top:1px solid var(--line);padding-top:14px"><label>已经有日历了？</label>
       <div style="display:flex;gap:8px"><input id="openLink" placeholder="https://…/?c=…"><button class="btn primary" id="openGo" type="button" style="white-space:nowrap;flex:none">进入</button></div>
     </div>
+    <a class="madeby" href="https://iamwenxuan.com" target="_blank" rel="noopener" aria-label="iamwenxuan"><i class="c"></i><i class="o"></i></a>
   </div>
 </div>
 
